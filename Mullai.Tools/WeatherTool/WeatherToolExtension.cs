@@ -8,6 +8,7 @@ public static class WeatherToolExtension
     public static IServiceCollection AddWeatherTool(
         this IServiceCollection services)
     {
+        services.AddSingleton<GeolocationProvider>();
         services.AddSingleton<WeatherProvider>();
         services.AddSingleton<CurrentTimeProvider>();
         services.AddSingleton<WeatherTool>();

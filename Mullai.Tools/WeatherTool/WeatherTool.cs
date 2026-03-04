@@ -1,14 +1,61 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
+using Mullai.Tools.WeatherTool.Models;
 
 namespace Mullai.Tools.WeatherTool;
 
 /// <summary>
-/// The agent plugin that provides weather and current time information.
+/// The agent plugin that provides weather, geolocation, and current time information.
 /// </summary>
 /// <param name="weatherProvider">The weather provider to get weather information.</param>
-public class WeatherTool(WeatherProvider weatherProvider)
+/// <param name="geolocationProvider">The geolocation provider to get location coordinates.</param>
+public class WeatherTool(WeatherProvider weatherProvider, GeolocationProvider geolocationProvider)
 {
+    /// <summary>
+    /// Gets the geographic coordinates (latitude and longitude) for a specified location.
+    /// </summary>
+    /// <param name="locationName">The name of the location to search for.</param>
+    /// <returns>A formatted string with the location details including coordinates.</returns>
+    public async Task<string> GetLocationCoordinatesAsync(string locationName)
+    {
+        var result = await geolocationProvider.SearchFirstAsync(locationName);
+        
+        if (result == null)
+        {
+            return $"Location '{locationName}' not found.";
+        }
+
+        var details = $"Location: {result.Name}, Country: {result.Country}";
+        if (!string.IsNullOrEmpty(result.Admin1))
+        {
+            details += $", State: {result.Admin1}";
+        }
+
+        details += $"\nCoordinates: Latitude {result.Latitude:F4}, Longitude {result.Longitude:F4}";
+        
+        if (result.Elevation.HasValue)
+        {
+            details += $"\nElevation: {result.Elevation}m";
+        }
+
+        if (!string.IsNullOrEmpty(result.Timezone))
+        {
+            details += $"\nTimezone: {result.Timezone}";
+        }
+
+        return details;
+    }
+
+    /// <summary>
+    /// Gets all geolocation results for a specified location name.
+    /// </summary>
+    /// <param name="locationName">The name of the location to search for.</param>
+    /// <returns>A list of matching geolocation results.</returns>
+    public async Task<List<GeolocationResult>> SearchLocationsAsync(string locationName)
+    {
+        return await geolocationProvider.SearchAsync(locationName);
+    }
+
     /// <summary>
     /// Gets the weather information for the specified location.
     /// </summary>
@@ -49,6 +96,8 @@ public class WeatherTool(WeatherProvider weatherProvider)
     /// <returns>The functions provided by this plugin.</returns>
     public IEnumerable<AITool> AsAITools()
     {
+        yield return AIFunctionFactory.Create(this.GetLocationCoordinatesAsync);
+        yield return AIFunctionFactory.Create(this.SearchLocationsAsync);
         yield return AIFunctionFactory.Create(this.GetWeather);
         yield return AIFunctionFactory.Create(this.GetCurrentTime);
     }
