@@ -18,17 +18,15 @@ public class LLMRequestLoggingHandler : DelegatingHandler
         // Log request payload
         if (request.Content != null && _logger.IsEnabled(LogLevel.Debug))
         {
-            using (var stream = new MemoryStream())
-            {
-                await request.Content.CopyToAsync(stream, null, cancellationToken);
-                var requestContent = System.Text.Encoding.UTF8.GetString(stream.ToArray());
-                _logger.LogDebug("Request Payload: {Payload}", requestContent);
+            using var stream = new MemoryStream();
+            await request.Content.CopyToAsync(stream, null, cancellationToken);
+            var requestContent = System.Text.Encoding.UTF8.GetString(stream.ToArray());
+            _logger.LogDebug("Request Payload: {Payload}", requestContent);
                 
-                // Recreate the content so it can be used by the downstream handler
-                var encoding = GetEncodingFromHeader(request.Content.Headers.ContentEncoding.FirstOrDefault());
-                var mediaType = request.Content.Headers.ContentType?.MediaType;
-                request.Content = new StringContent(requestContent, encoding, mediaType);
-            }
+            // Recreate the content so it can be used by the downstream handler
+            var encoding = GetEncodingFromHeader(request.Content.Headers.ContentEncoding.FirstOrDefault());
+            var mediaType = request.Content.Headers.ContentType?.MediaType;
+            request.Content = new StringContent(requestContent, encoding, mediaType);
         }
         
         var response = await base.SendAsync(request, cancellationToken);
@@ -36,19 +34,17 @@ public class LLMRequestLoggingHandler : DelegatingHandler
         _logger.LogInformation("Response: {StatusCode}", response.StatusCode);
         
         // Log response payload
-        if (response.Content != null && _logger.IsEnabled(LogLevel.Debug))
+        if (_logger.IsEnabled(LogLevel.Debug))
         {
-            using (var stream = new MemoryStream())
-            {
-                await response.Content.CopyToAsync(stream, null, cancellationToken);
-                var responseContent = System.Text.Encoding.UTF8.GetString(stream.ToArray());
-                _logger.LogDebug("Response Payload: {Payload}", responseContent);
+            using var stream = new MemoryStream();
+            await response.Content.CopyToAsync(stream, null, cancellationToken);
+            var responseContent = System.Text.Encoding.UTF8.GetString(stream.ToArray());
+            _logger.LogDebug("Response Payload: {Payload}", responseContent);
                 
-                // Recreate the content so it can be consumed by the caller
-                var encoding = GetEncodingFromHeader(response.Content.Headers.ContentEncoding.FirstOrDefault());
-                var mediaType = response.Content.Headers.ContentType?.MediaType;
-                response.Content = new StringContent(responseContent, encoding, mediaType);
-            }
+            // Recreate the content so it can be consumed by the caller
+            var encoding = GetEncodingFromHeader(response.Content.Headers.ContentEncoding.FirstOrDefault());
+            var mediaType = response.Content.Headers.ContentType?.MediaType;
+            response.Content = new StringContent(responseContent, encoding, mediaType);
         }
         
         return response;
