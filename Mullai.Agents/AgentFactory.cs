@@ -3,6 +3,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mullai.Agents.Agents;
+using Mullai.Global.Config.OpenTelemetry;
 using Mullai.Tools.WeatherTool;
 using Mullai.Memory.UserMemory;
 
@@ -48,7 +49,12 @@ public class AgentFactory
                         Name = assistant.Name,
                         AIContextProviders = [userMemory],
                     },
-                     _serviceProvider.GetRequiredService<ILoggerFactory>());
+                     _serviceProvider.GetRequiredService<ILoggerFactory>())
+                    .AsBuilder()
+                    .UseOpenTelemetry(
+                        sourceName: OpenTelemetrySettings.ServiceName, 
+                        configure: (cfg) => cfg.EnableSensitiveData = true)
+                    .Build();
                 break;
             
             default:

@@ -4,6 +4,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Mullai.Global.Config.OpenTelemetry;
 using OpenAI;
 
 
@@ -55,7 +56,13 @@ public static class OpenRouter
 
         openAIClient = new OpenAIClient(new ApiKeyCredential(apiKey), openAIOptions);
         
-        var chatClient = openAIClient.GetChatClient(modelId).AsIChatClient();
+        var chatClient = openAIClient.GetChatClient(modelId)
+            .AsIChatClient()
+            .AsBuilder()
+            .UseOpenTelemetry(
+                sourceName: OpenTelemetrySettings.ServiceName, 
+                configure: (cfg) => cfg.EnableSensitiveData = true)
+            .Build();
         
         return chatClient;
     }

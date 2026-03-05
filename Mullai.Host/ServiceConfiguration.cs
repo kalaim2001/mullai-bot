@@ -2,31 +2,41 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Mullai.Global.Config.OpenTelemetry;
 using Mullai.Host.Logging;
+using Mullai.Host.Telemetry;
 using Mullai.Providers.LLMProviders.OpenRouter;
 using Mullai.Tools.WeatherTool;
 using Mullai.Memory;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
 
 namespace Mullai.Host
 {
     public static class ServiceConfiguration
     {
-        public static IServiceProvider ConfigureServices()
+        public static IServiceProvider ConfigureServices(IConfiguration configuration)
         {
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
-            
             var serviceCollection = new ServiceCollection();
 
             serviceCollection
-                .AddSingleton<IConfiguration>(config)
+                .AddSingleton<IConfiguration>(configuration)
                 .AddLogging(builder =>
                 {
                     builder
                         .AddConsole()
-                        .SetMinimumLevel(LogLevel.Trace);
+                        .SetMinimumLevel(LogLevel.Trace)
+                        .AddOpenTelemetry(options =>
+                        {
+                            options.SetResourceBuilder(
+                                ResourceBuilder.CreateDefault().AddService(
+                                    OpenTelemetrySettings.ServiceName, 
+                                    serviceVersion: OpenTelemetrySettings.ServiceVersion));
+                            options.AddOtlpExporter(
+                                otlpOptions => otlpOptions.Endpoint = new Uri(OpenTelemetrySettings.OtlpEndpoint));
+                            options.IncludeScopes = true;
+                            options.IncludeFormattedMessage = true;
+                        });
                 })
                 .AddSingleton<LLMRequestLoggingHandler>()
                 .AddSingleton<HttpClient>(sp => {
@@ -40,7 +50,7 @@ namespace Mullai.Host
                     var httpClient = sp.GetRequiredService<HttpClient>();
         
                     // Initialize your OpenRouter client using the factory
-                    return OpenRouter.GetOpenRouterChatClient(config, loggerFactory, httpClient);
+                    return OpenRouter.GetOpenRouterChatClient(configuration, loggerFactory, httpClient);
                 })
                 .AddWeatherTool()
                 .AddUserMemory();

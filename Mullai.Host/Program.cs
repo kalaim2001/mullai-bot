@@ -1,4 +1,8 @@
-﻿using Mullai.Agents;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Mullai.Agents;
+using Mullai.Global.Config.OpenTelemetry;
+using Mullai.Host.Telemetry;
 
 namespace Mullai.Host
 {
@@ -7,7 +11,18 @@ namespace Mullai.Host
         static async Task Main(string[] args)
         {
             // Initialize the configuration and build service provider
-            var serviceProvider = ServiceConfiguration.ConfigureServices();
+            var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+            
+            //Initialize OpenTelemetrySettings with Config values
+            OpenTelemetrySettings.Initialize(config);
+            
+            var serviceProvider = ServiceConfiguration.ConfigureServices(config);
+            
+            using var tracer = OpenTelemetryProvider.SetupTracerProvider(config);
+            using var meter = OpenTelemetryProvider.SetupMeterProvider(config);
 
             var agentFactory = new AgentFactory(serviceProvider);
             var agent = agentFactory.GetAgent("Assistant");
