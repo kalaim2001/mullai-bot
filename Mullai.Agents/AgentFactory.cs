@@ -8,6 +8,7 @@ using Mullai.Tools.WeatherTool;
 using Mullai.Memory.UserMemory;
 using Mullai.Skills;
 using Mullai.Tools.CliTool;
+using Mullai.Tools.FileSystemTool;
 
 namespace Mullai.Agents;
 
@@ -48,6 +49,7 @@ public class AgentFactory
                             Tools = [
                                 .. _serviceProvider.GetRequiredService<WeatherTool>().AsAITools(),
                                 .. _serviceProvider.GetRequiredService<CliTool>().AsAITools(),
+                                .. _serviceProvider.GetRequiredService<FileSystemTool>().AsAITools(),
                             ],
                             
                         },

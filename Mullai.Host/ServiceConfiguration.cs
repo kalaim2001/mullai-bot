@@ -11,6 +11,7 @@ using Mullai.Memory;
 using Mullai.Providers.LLMProviders.OllamaOpenAI;
 using Mullai.Skills;
 using Mullai.Tools.CliTool;
+using Mullai.Tools.FileSystemTool;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 
@@ -58,6 +59,7 @@ namespace Mullai.Host
                 })
                 .AddWeatherTool()
                 .AddCliTool()
+                .AddFileSystemTool()
                 .AddUserMemory()
                 .AddMullaiSkills();
 

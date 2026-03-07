@@ -4,6 +4,7 @@ using Microsoft.Extensions.AI;
 using Mullai.Agents;
 using Mullai.Tools.WeatherTool;
 using Mullai.Tools.CliTool;
+using Mullai.Tools.FileSystemTool;
 using Mullai.Memory;
 using Mullai.Skills;
 using Mullai.Providers.LLMProviders.OllamaOpenAI;
@@ -31,6 +32,7 @@ builder.Services.AddSingleton<IChatClient>(sp =>
 builder.Services.AddSingleton<AgentFactory>();
 builder.Services.AddWeatherTool()
     .AddCliTool()
+    .AddFileSystemTool()
     .AddUserMemory()
     .AddMullaiSkills();
 
