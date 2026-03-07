@@ -7,6 +7,7 @@ using Mullai.Global.Config.OpenTelemetry;
 using Mullai.Tools.WeatherTool;
 using Mullai.Memory.UserMemory;
 using Mullai.Skills;
+using Mullai.Tools.CliTool;
 
 namespace Mullai.Agents;
 
@@ -45,7 +46,8 @@ public class AgentFactory
                         {
                             Instructions = assistant.Instructions,
                             Tools = [
-                                .. _serviceProvider.GetRequiredService<WeatherTool>().AsAITools()
+                                .. _serviceProvider.GetRequiredService<WeatherTool>().AsAITools(),
+                                .. _serviceProvider.GetRequiredService<CliTool>().AsAITools(),
                             ],
                             
                         },

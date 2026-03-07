@@ -10,6 +10,7 @@ using Mullai.Tools.WeatherTool;
 using Mullai.Memory;
 using Mullai.Providers.LLMProviders.OllamaOpenAI;
 using Mullai.Skills;
+using Mullai.Tools.CliTool;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 
@@ -56,6 +57,7 @@ namespace Mullai.Host
                     return OllamaOpenAI.GetOllamaOpenAIChatClient(configuration, loggerFactory, httpClient);
                 })
                 .AddWeatherTool()
+                .AddCliTool()
                 .AddUserMemory()
                 .AddMullaiSkills();
 
