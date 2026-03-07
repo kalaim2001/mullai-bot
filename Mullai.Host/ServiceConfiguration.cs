@@ -8,6 +8,7 @@ using Mullai.Host.Telemetry;
 using Mullai.Providers.LLMProviders.OpenRouter;
 using Mullai.Tools.WeatherTool;
 using Mullai.Memory;
+using Mullai.Skills;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 
@@ -25,7 +26,7 @@ namespace Mullai.Host
                 {
                     builder
                         .AddConsole()
-                        .SetMinimumLevel(LogLevel.Trace)
+                        .SetMinimumLevel(LogLevel.Error)
                         .AddOpenTelemetry(options =>
                         {
                             options.SetResourceBuilder(
@@ -53,7 +54,8 @@ namespace Mullai.Host
                     return OpenRouter.GetOpenRouterChatClient(configuration, loggerFactory, httpClient);
                 })
                 .AddWeatherTool()
-                .AddUserMemory();
+                .AddUserMemory()
+                .AddMullaiSkills();
 
             return serviceCollection.BuildServiceProvider();
         }

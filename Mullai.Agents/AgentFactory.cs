@@ -6,6 +6,7 @@ using Mullai.Agents.Agents;
 using Mullai.Global.Config.OpenTelemetry;
 using Mullai.Tools.WeatherTool;
 using Mullai.Memory.UserMemory;
+using Mullai.Skills;
 
 namespace Mullai.Agents;
 
@@ -43,11 +44,16 @@ public class AgentFactory
                         ChatOptions = new()
                         {
                             Instructions = assistant.Instructions,
-                            Tools = [.. _serviceProvider.GetRequiredService<WeatherTool>().AsAITools()],
+                            Tools = [
+                                .. _serviceProvider.GetRequiredService<WeatherTool>().AsAITools()
+                            ],
                             
                         },
                         Name = assistant.Name,
-                        AIContextProviders = [userMemory],
+                        AIContextProviders = [
+                            userMemory,
+                            _serviceProvider.GetRequiredService<FileAgentSkillsProvider>()
+                        ],
                     },
                      _serviceProvider.GetRequiredService<ILoggerFactory>())
                     .AsBuilder()

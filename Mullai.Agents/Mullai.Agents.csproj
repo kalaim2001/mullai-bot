@@ -4,6 +4,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <NoWarn>$(NoWarn);MAAI001</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,6 +17,7 @@
       <ProjectReference Include="..\Mullai.Global.Config\Mullai.Global.Config.csproj" />
       <ProjectReference Include="..\Mullai.Tools\Mullai.Tools.csproj" />
       <ProjectReference Include="..\Mullai.Memory\Mullai.Memory.csproj" />
+      <ProjectReference Include="..\Mullai.Skills\Mullai.Skills.csproj" />
     </ItemGroup>
 
 </Project>
