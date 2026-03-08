@@ -1,4 +1,20 @@
-# Mullai 🌸
+# 🌸 Mullai — AI Assistant
+
+<p align="center">
+    <picture>
+        <img src="https://raw.githubusercontent.com/agentmatters/themullai/refs/heads/main/docs/assets/mullai-logo-text.png" alt="Mullai" width="500">
+    </picture>
+</p>
+
+<p align="center">
+  <strong>Your Personal Assistant</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/agentmatters/themullai/actions/workflows/dotnet.yml?branch=main"><img src="https://img.shields.io/github/actions/workflow/status/agentmatters/themullai/dotnet.yml?branch=main&style=for-the-badge" alt="CI status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
+</p>
+
 
 Mullai is a modern, extensible AI Agent framework built on .NET. It leverages `Microsoft.Extensions.AI` and `Microsoft.Agents.AI` to run intelligent, multi-turn AI agents equipped with tools, memory, and skills. 
 
