@@ -1,6 +1,9 @@
 <Solution>
   <Project Path="Mullai.Abstractions/Mullai.Abstractions.csproj" />
   <Project Path="Mullai.Agents/Mullai.Agents.csproj" />
+  <Project Path="Mullai.Channels.Api/Mullai.Channels.Api.csproj" />
+  <Project Path="Mullai.Channels.Core/Mullai.Channels.Core.csproj" />
+  <Project Path="Mullai.Channels.Telegram/Mullai.Channels.Telegram.csproj" />
   <Project Path="Mullai.Global.Config/Mullai.Global.Config.csproj" />
   <Project Path="Mullai.Host\Mullai.Host.csproj" />
   <Project Path="Mullai.Memory/Mullai.Memory.csproj" />
