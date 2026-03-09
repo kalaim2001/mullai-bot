@@ -1,6 +1,6 @@
-namespace Mullai.Host.Logging;
-
 using Microsoft.Extensions.Logging;
+
+namespace Mullai.Logging.LLMRequestLogging;
 
 public class LLMRequestLoggingHandler : DelegatingHandler
 {

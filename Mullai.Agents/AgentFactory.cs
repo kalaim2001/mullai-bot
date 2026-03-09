@@ -3,13 +3,13 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mullai.Agents.Agents;
-using Mullai.Global.Config.OpenTelemetry;
 using Mullai.Tools.WeatherTool;
 using Mullai.Memory.UserMemory;
 using Mullai.Skills;
 using Mullai.Tools.CliTool;
 using Mullai.Tools.FileSystemTool;
 using Mullai.Middleware.Middlewares;
+using Mullai.OpenTelemetry.OpenTelemetry;
 
 namespace Mullai.Agents;
 

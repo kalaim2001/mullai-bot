@@ -2,13 +2,13 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Mullai.Global.Config.OpenTelemetry;
-using Mullai.Host.Logging;
-using Mullai.Host.Telemetry;
+using Mullai.Agents;
+using Mullai.Logging.LLMRequestLogging;
 using Mullai.Providers.LLMProviders.OpenRouter;
 using Mullai.Providers.LLMProviders.Gemini;
 using Mullai.Tools.WeatherTool;
 using Mullai.Memory;
+using Mullai.OpenTelemetry.OpenTelemetry;
 using Mullai.Providers.LLMProviders.Mistral;
 using Mullai.Skills;
 using Mullai.Tools.CliTool;
@@ -16,15 +16,26 @@ using Mullai.Tools.FileSystemTool;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 
-namespace Mullai.Host
+namespace Mullai.Global.ServiceConfiguration
 {
     public static class ServiceConfiguration
     {
-        public static IServiceProvider ConfigureServices(IConfiguration configuration)
+        public static IServiceProvider ConfigureMullaiServices(IConfiguration configuration)
         {
+            OpenTelemetrySettings.Initialize(configuration);
+            
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection
+            serviceCollection.ConfigureMullaiServices(configuration);
+
+            return serviceCollection.BuildServiceProvider();
+        }
+
+        public static IServiceCollection ConfigureMullaiServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            OpenTelemetrySettings.Initialize(configuration);
+            
+            services
                 .AddSingleton<IConfiguration>(configuration)
                 .AddLogging(builder =>
                 {
@@ -59,13 +70,14 @@ namespace Mullai.Host
                     // return Gemini.GetGeminiChatClient(configuration, loggerFactory, httpClient);
                     return Mistral.GetMistralChatClient(configuration, loggerFactory, httpClient);
                 })
+                .AddSingleton<AgentFactory>()
                 .AddWeatherTool()
                 .AddCliTool()
                 .AddFileSystemTool()
                 .AddUserMemory()
                 .AddMullaiSkills();
-
-            return serviceCollection.BuildServiceProvider();
+            
+            return services;
         }
     }
 }

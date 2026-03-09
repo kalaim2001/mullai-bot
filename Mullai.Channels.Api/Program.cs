@@ -1,13 +1,18 @@
 using Mullai.Channels.Api;
 using Mullai.Channels.Core;
-using Mullai.Channels.Core.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddOpenApi();
-builder.Services.AddMullaiAgentServices(builder.Configuration);
+
+var config = new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .Build();
+
+builder.Services.AddMullaiAgentServices(config);
 
 var app = builder.Build();
 

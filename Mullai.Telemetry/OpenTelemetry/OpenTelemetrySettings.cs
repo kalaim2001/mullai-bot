@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-namespace Mullai.Global.Config.OpenTelemetry;
+namespace Mullai.OpenTelemetry.OpenTelemetry;
 
 public class OpenTelemetrySettings
 {

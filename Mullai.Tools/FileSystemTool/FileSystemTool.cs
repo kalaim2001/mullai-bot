@@ -37,17 +37,17 @@ public class FileSystemTool(FileSystemProvider fileSystemProvider)
         return await fileSystemProvider.WriteFileAsync(filePath, content);
     }
 
-    /// <summary>
-    /// Lists the contents of a directory, including files and subdirectories.
-    /// </summary>
-    /// <param name="directoryPath">The absolute or relative path to the directory.</param>
-    /// <returns>A formatted string listing the directories and files.</returns>
-    [Description("Lists the contents of a directory, showing all files and subdirectories.")]
-    public Task<string> ListDirectoryAsync(
-        [Description("The absolute or relative path to the directory.")] string directoryPath)
-    {
-        return Task.FromResult(fileSystemProvider.ListDirectory(directoryPath));
-    }
+    // /// <summary>
+    // /// Lists the contents of a directory, including files and subdirectories.
+    // /// </summary>
+    // /// <param name="directoryPath">The absolute or relative path to the directory.</param>
+    // /// <returns>A formatted string listing the directories and files.</returns>
+    // [Description("Lists the contents of a directory, showing all files and subdirectories.")]
+    // public Task<string> ListDirectoryAsync(
+    //     [Description("The absolute or relative path to the directory.")] string directoryPath)
+    // {
+    //     return Task.FromResult(fileSystemProvider.ListDirectory(directoryPath));
+    // }
 
     /// <summary>
     /// Returns the functions provided by this plugin.
@@ -57,6 +57,6 @@ public class FileSystemTool(FileSystemProvider fileSystemProvider)
     {
         yield return AIFunctionFactory.Create(this.ReadFileAsync);
         yield return AIFunctionFactory.Create(this.WriteFileAsync);
-        yield return AIFunctionFactory.Create(this.ListDirectoryAsync);
+        // yield return AIFunctionFactory.Create(this.ListDirectoryAsync);
     }
 }

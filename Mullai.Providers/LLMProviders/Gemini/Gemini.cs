@@ -3,7 +3,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mullai.Global.Config.OpenTelemetry;
+using Mullai.OpenTelemetry.OpenTelemetry;
 
 namespace Mullai.Providers.LLMProviders.Gemini;
 

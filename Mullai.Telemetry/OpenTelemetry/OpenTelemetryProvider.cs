@@ -1,11 +1,10 @@
 using Microsoft.Extensions.Configuration;
-using Mullai.Global.Config.OpenTelemetry;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace Mullai.Host.Telemetry;
+namespace Mullai.OpenTelemetry.OpenTelemetry;
 
 public static class OpenTelemetryProvider
 {

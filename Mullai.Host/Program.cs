@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Mullai.Agents;
-using Mullai.Global.Config.OpenTelemetry;
-using Mullai.Host.Telemetry;
+using Mullai.Global.ServiceConfiguration;
+using Mullai.OpenTelemetry.OpenTelemetry;
 
 namespace Mullai.Host
 {
@@ -17,14 +17,13 @@ namespace Mullai.Host
                 .Build();
             
             //Initialize OpenTelemetrySettings with Config values
-            OpenTelemetrySettings.Initialize(config);
             
-            var serviceProvider = ServiceConfiguration.ConfigureServices(config);
+            var serviceProvider = ServiceConfiguration.ConfigureMullaiServices(config);
             
             using var tracer = OpenTelemetryProvider.SetupTracerProvider(config);
             using var meter = OpenTelemetryProvider.SetupMeterProvider(config);
 
-            var agentFactory = new AgentFactory(serviceProvider);
+            var agentFactory = serviceProvider.GetRequiredService<AgentFactory>();
             var agent = agentFactory.GetAgent("Assistant");
             
             // Create a persistent session for multi-turn conversation

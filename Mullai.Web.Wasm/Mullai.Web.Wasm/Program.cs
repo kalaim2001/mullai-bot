@@ -2,6 +2,7 @@ using Mullai.Web.Wasm.Client.Pages;
 using Mullai.Web.Wasm.Components;
 using Microsoft.Extensions.AI;
 using Mullai.Agents;
+using Mullai.Global.ServiceConfiguration;
 using Mullai.Tools.WeatherTool;
 using Mullai.Tools.CliTool;
 using Mullai.Tools.FileSystemTool;
@@ -17,25 +18,12 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddSingleton<HttpClient>();
+var config = new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .Build();
 
-builder.Services.AddSingleton<IChatClient>(sp => 
-{
-    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-    var httpClient = sp.GetRequiredService<HttpClient>();
-    var config = sp.GetRequiredService<IConfiguration>();
-
-    return Gemini.GetGeminiChatClient(config, loggerFactory, httpClient);
-    // return OpenRouter.GetOpenRouterChatClient(config, loggerFactory, httpClient);
-    // return OllamaOpenAI.GetOllamaOpenAIChatClient(config, loggerFactory, httpClient);
-});
-
-builder.Services.AddSingleton<AgentFactory>();
-builder.Services.AddWeatherTool()
-    .AddCliTool()
-    .AddFileSystemTool()
-    .AddUserMemory()
-    .AddMullaiSkills();
+builder.Services.ConfigureMullaiServices(config);
 
 
 var app = builder.Build();

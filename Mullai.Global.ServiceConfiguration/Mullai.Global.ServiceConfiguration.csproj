@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.AI" Version="10.3.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.3" />
+      <PackageReference Include="OpenTelemetry" Version="1.15.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Mullai.Agents\Mullai.Agents.csproj" />
+      <ProjectReference Include="..\Mullai.Logging\Mullai.Logging.csproj" />
+      <ProjectReference Include="..\Mullai.Memory\Mullai.Memory.csproj" />
+      <ProjectReference Include="..\Mullai.Middleware\Mullai.Middleware.csproj" />
+      <ProjectReference Include="..\Mullai.Providers\Mullai.Providers.csproj" />
+      <ProjectReference Include="..\Mullai.Skills\Mullai.Skills.csproj" />
+      <ProjectReference Include="..\Mullai.Tools\Mullai.Tools.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>

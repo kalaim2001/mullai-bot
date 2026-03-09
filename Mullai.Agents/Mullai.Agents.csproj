@@ -14,7 +14,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Mullai.Abstractions\Mullai.Abstractions.csproj" />
-      <ProjectReference Include="..\Mullai.Global.Config\Mullai.Global.Config.csproj" />
+      <ProjectReference Include="..\Mullai.Telemetry\Mullai.Telemetry.csproj" />
       <ProjectReference Include="..\Mullai.Tools\Mullai.Tools.csproj" />
       <ProjectReference Include="..\Mullai.Memory\Mullai.Memory.csproj" />
       <ProjectReference Include="..\Mullai.Skills\Mullai.Skills.csproj" />
