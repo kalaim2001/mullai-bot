@@ -27,14 +27,21 @@ public static class OllamaOpenAI
 
     public static IChatClient GetOllamaOpenAIChatClient(
         IConfiguration configuration,
-        ILoggerFactory loggerFactory,
-        HttpClient httpClient
+        HttpClient httpClient,
+        string? modelId = null
     )
     {
         return OpenAICompatibleProvider.CreateChatClient(
-            "OllamaOpenAI", 
-            "http://localhost:11434/v1", 
-            configuration, 
-            httpClient);
+            "OllamaOpenAI",
+            "http://localhost:11434/v1",
+            configuration,
+            httpClient,
+            modelIdOverride: modelId);
     }
-}
+
+    [Obsolete("Use GetOllamaOpenAIChatClient(configuration, httpClient, modelId) instead.")]
+    public static IChatClient GetOllamaOpenAIChatClient(
+        IConfiguration configuration,
+        ILoggerFactory loggerFactory,
+        HttpClient httpClient
+    ) => GetOllamaOpenAIChatClient(configuration, httpClient);}

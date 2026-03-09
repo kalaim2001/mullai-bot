@@ -27,15 +27,23 @@ public static class Mistral
 
     public static IChatClient GetMistralChatClient(
         IConfiguration configuration,
-        ILoggerFactory loggerFactory,
-        HttpClient httpClient
+        HttpClient httpClient,
+        string? modelId = null
     )
     {
         return OpenAICompatibleProvider.CreateChatClient(
-            "Mistral", 
-            "https://api.mistral.ai/v1", 
-            configuration, 
+            "Mistral",
+            "https://api.mistral.ai/v1",
+            configuration,
             httpClient,
-            builder => builder.Use((inner, services) => new MistralChatMessageInterceptor(inner)));
+            builder => builder.Use((inner, services) => new MistralChatMessageInterceptor(inner)),
+            modelIdOverride: modelId);
     }
+
+    [Obsolete("Use GetMistralChatClient(configuration, httpClient, modelId) instead.")]
+    public static IChatClient GetMistralChatClient(
+        IConfiguration configuration,
+        ILoggerFactory loggerFactory,
+        HttpClient httpClient
+    ) => GetMistralChatClient(configuration, httpClient);
 }

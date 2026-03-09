@@ -28,14 +28,22 @@ public static class Groq
 
     public static IChatClient GetGroqChatClient(
         IConfiguration configuration,
-        ILoggerFactory loggerFactory,
-        HttpClient httpClient
+        HttpClient httpClient,
+        string? modelId = null
     )
     {
         return OpenAICompatibleProvider.CreateChatClient(
-            "Groq", 
-            "https://api.groq.com/openai/v1", 
-            configuration, 
-            httpClient);
+            "Groq",
+            "https://api.groq.com/openai/v1",
+            configuration,
+            httpClient,
+            modelIdOverride: modelId);
     }
+
+    [Obsolete("Use GetGroqChatClient(configuration, httpClient, modelId) instead.")]
+    public static IChatClient GetGroqChatClient(
+        IConfiguration configuration,
+        ILoggerFactory loggerFactory,
+        HttpClient httpClient
+    ) => GetGroqChatClient(configuration, httpClient);
 }

@@ -23,14 +23,22 @@ public static class Cerebras
 
     public static IChatClient GetCerebrasChatClient(
         IConfiguration configuration,
-        ILoggerFactory loggerFactory,
-        HttpClient httpClient
+        HttpClient httpClient,
+        string? modelId = null
     )
     {
         return OpenAICompatibleProvider.CreateChatClient(
-            "Cerebras", 
-            "https://api.cerebras.ai/v1/", 
-            configuration, 
-            httpClient);
+            "Cerebras",
+            "https://api.cerebras.ai/v1/",
+            configuration,
+            httpClient,
+            modelIdOverride: modelId);
     }
+
+    [Obsolete("Use GetCerebrasChatClient(configuration, httpClient, modelId) instead.")]
+    public static IChatClient GetCerebrasChatClient(
+        IConfiguration configuration,
+        ILoggerFactory loggerFactory,
+        HttpClient httpClient
+    ) => GetCerebrasChatClient(configuration, httpClient);
 }

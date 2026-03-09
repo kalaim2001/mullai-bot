@@ -16,15 +16,16 @@ public static class OpenAICompatibleProvider
         string defaultEndpoint,
         IConfiguration configuration,
         HttpClient httpClient,
-        Action<ChatClientBuilder>? configureBuilder = null)
+        Action<ChatClientBuilder>? configureBuilder = null,
+        string? modelIdOverride = null)
     {
         var endpoint = configuration[$"{providerName}:Endpoint"] ?? defaultEndpoint;
-        var modelId = configuration[$"{providerName}:ModelId"];
+        var modelId = modelIdOverride ?? configuration[$"{providerName}:ModelId"];
         var apiKey = configuration[$"{providerName}:ApiKey"];
 
         if (string.IsNullOrWhiteSpace(modelId))
         {
-            throw new InvalidOperationException($"{providerName}:ModelId is missing from configuration.");
+            throw new InvalidOperationException($"{providerName}:ModelId is missing from configuration and no modelIdOverride was supplied.");
         }
             
         if (string.IsNullOrWhiteSpace(apiKey))

@@ -25,12 +25,12 @@ public static class Gemini
 
     public static IChatClient GetGeminiChatClient(
         IConfiguration configuration,
-        ILoggerFactory loggerFactory,
-        HttpClient httpClient
+        HttpClient httpClient,
+        string? modelId = null
     )
     {
         var apiKey = configuration["Gemini:ApiKey"];
-        var modelId = configuration["Gemini:ModelId"] ?? "gemini-2.5-flash";
+        var resolvedModelId = modelId ?? configuration["Gemini:ModelId"] ?? "gemini-2.5-flash";
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
@@ -42,7 +42,7 @@ public static class Gemini
         var geminiClient = new Client(vertexAI: false, apiKey: apiKey);
         
         var chatClient = geminiClient
-            .AsIChatClient(modelId)
+            .AsIChatClient(resolvedModelId)
             .AsBuilder()
             .UseOpenTelemetry(
                 sourceName: OpenTelemetrySettings.ServiceName, 
@@ -51,4 +51,11 @@ public static class Gemini
 
         return chatClient;
     }
+
+    [Obsolete("Use GetGeminiChatClient(configuration, httpClient, modelId) instead.")]
+    public static IChatClient GetGeminiChatClient(
+        IConfiguration configuration,
+        ILoggerFactory loggerFactory,
+        HttpClient httpClient
+    ) => GetGeminiChatClient(configuration, httpClient);
 }

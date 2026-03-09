@@ -28,14 +28,22 @@ public static class OpenRouter
 
     public static IChatClient GetOpenRouterChatClient(
         IConfiguration configuration,
-        ILoggerFactory loggerFactory,
-        HttpClient httpClient
+        HttpClient httpClient,
+        string? modelId = null
     )
     {
         return OpenAICompatibleProvider.CreateChatClient(
-            "OpenRouter", 
-            "https://openrouter.ai/api/v1", 
-            configuration, 
-            httpClient);
+            "OpenRouter",
+            "https://openrouter.ai/api/v1",
+            configuration,
+            httpClient,
+            modelIdOverride: modelId);
     }
+
+    [Obsolete("Use GetOpenRouterChatClient(configuration, httpClient, modelId) instead.")]
+    public static IChatClient GetOpenRouterChatClient(
+        IConfiguration configuration,
+        ILoggerFactory loggerFactory,
+        HttpClient httpClient
+    ) => GetOpenRouterChatClient(configuration, httpClient);
 }
