@@ -12,6 +12,7 @@ using Mullai.Providers.LLMProviders.OllamaOpenAI;
 using Mullai.Providers.LLMProviders.OpenRouter;
 using Mullai.Providers.LLMProviders.Gemini;
 using Mullai.Providers.LLMProviders.Groq;
+using Mullai.Providers.LLMProviders.Cerebras;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

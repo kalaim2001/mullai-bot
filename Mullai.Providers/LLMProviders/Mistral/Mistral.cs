@@ -31,39 +31,11 @@ public static class Mistral
         HttpClient httpClient
     )
     {
-        const string endpoint = "https://api.mistral.ai/v1";
-        var modelId = configuration["Mistral:ModelId"];
-        var apiKey = configuration["Mistral:ApiKey"];
-
-        if (string.IsNullOrWhiteSpace(modelId))
-        {
-            throw new InvalidOperationException("Mistral:ModelId is missing from configuration.");
-        }
-        
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            throw new InvalidOperationException("Mistral:ApiKey is missing from configuration.");
-        }
-
-        OpenAIClient openAIClient;
-
-        var openAIOptions = new OpenAIClientOptions()
-        {
-            Endpoint = new Uri(endpoint),
-            Transport = new HttpClientPipelineTransport(httpClient)
-        };
-
-        openAIClient = new OpenAIClient(new ApiKeyCredential(apiKey), openAIOptions);
-        
-        var chatClient = openAIClient.GetChatClient(modelId)
-            .AsIChatClient()
-            .AsBuilder()
-            .Use((inner, services) => new MistralChatMessageInterceptor(inner))
-            .UseOpenTelemetry(
-                sourceName: OpenTelemetrySettings.ServiceName, 
-                configure: (cfg) => cfg.EnableSensitiveData = true)
-            .Build();
-        
-        return chatClient;
+        return OpenAICompatibleProvider.CreateChatClient(
+            "Mistral", 
+            "https://api.mistral.ai/v1", 
+            configuration, 
+            httpClient,
+            builder => builder.Use((inner, services) => new MistralChatMessageInterceptor(inner)));
     }
 }

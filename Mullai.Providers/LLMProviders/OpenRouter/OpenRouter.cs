@@ -32,38 +32,10 @@ public static class OpenRouter
         HttpClient httpClient
     )
     {
-        const string endpoint = "https://openrouter.ai/api/v1";
-        var modelId = configuration["OpenRouter:ModelId"];
-        var apiKey = configuration["OpenRouter:ApiKey"];
-
-        if (string.IsNullOrWhiteSpace(modelId))
-        {
-            throw new InvalidOperationException("OpenRouter:ModelId is missing from configuration.");
-        }
-        
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            throw new InvalidOperationException("OpenRouter:ApiKey is missing from configuration.");
-        }
-
-        OpenAIClient openAIClient;
-
-        var openAIOptions = new OpenAIClientOptions()
-        {
-            Endpoint = new Uri(endpoint),
-            Transport = new HttpClientPipelineTransport(httpClient)
-        };
-
-        openAIClient = new OpenAIClient(new ApiKeyCredential(apiKey), openAIOptions);
-        
-        var chatClient = openAIClient.GetChatClient(modelId)
-            .AsIChatClient()
-            .AsBuilder()
-            .UseOpenTelemetry(
-                sourceName: OpenTelemetrySettings.ServiceName, 
-                configure: (cfg) => cfg.EnableSensitiveData = true)
-            .Build();
-        
-        return chatClient;
+        return OpenAICompatibleProvider.CreateChatClient(
+            "OpenRouter", 
+            "https://openrouter.ai/api/v1", 
+            configuration, 
+            httpClient);
     }
 }

@@ -10,6 +10,7 @@ using Mullai.Tools.WeatherTool;
 using Mullai.Providers.LLMProviders.OpenRouter;
 using Mullai.Providers.LLMProviders.Gemini;
 using Mullai.Providers.LLMProviders.Groq;
+using Mullai.Providers.LLMProviders.Cerebras;
 using Mullai.Channels.Telegram;
 using Mullai.Global.ServiceConfiguration;
 

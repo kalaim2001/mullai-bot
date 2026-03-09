@@ -1,39 +1,35 @@
-using System.ClientModel;
-using System.ClientModel.Primitives;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mullai.OpenTelemetry.OpenTelemetry;
-using OpenAI;
 
-namespace Mullai.Providers.LLMProviders.OllamaOpenAI;
+namespace Mullai.Providers.LLMProviders.Cerebras;
 
-public static class OllamaOpenAI
+public static class Cerebras
 {
-    public static IServiceCollection AddOllamaOpenAIChatClient(
+    public static IServiceCollection AddCerebrasChatClient(
         this IServiceCollection services, 
         IConfiguration configuration,
         ILoggerFactory loggerFactory,
         HttpClient httpClient
-    )
+        )
     {
-        var chatClient = GetOllamaOpenAIChatClient(configuration, loggerFactory, httpClient);
+        var chatClient = GetCerebrasChatClient(configuration, loggerFactory, httpClient);
 
         services.AddSingleton<IChatClient>(chatClient);
 
         return services;
     }
 
-    public static IChatClient GetOllamaOpenAIChatClient(
+    public static IChatClient GetCerebrasChatClient(
         IConfiguration configuration,
         ILoggerFactory loggerFactory,
         HttpClient httpClient
     )
     {
         return OpenAICompatibleProvider.CreateChatClient(
-            "OllamaOpenAI", 
-            "http://localhost:11434/v1", 
+            "Cerebras", 
+            "https://api.cerebras.ai/v1/", 
             configuration, 
             httpClient);
     }
