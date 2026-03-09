@@ -6,6 +6,7 @@ using Mullai.Agents;
 using Mullai.Logging.LLMRequestLogging;
 using Mullai.Providers.LLMProviders.OpenRouter;
 using Mullai.Providers.LLMProviders.Gemini;
+using Mullai.Providers.LLMProviders.Groq;
 using Mullai.Tools.WeatherTool;
 using Mullai.Memory;
 using Mullai.OpenTelemetry.OpenTelemetry;
@@ -68,7 +69,8 @@ namespace Mullai.Global.ServiceConfiguration
                     // Initialize your OpenRouter client using the factory
                     // return OpenRouter.GetOpenRouterChatClient(configuration, loggerFactory, httpClient);
                     // return Gemini.GetGeminiChatClient(configuration, loggerFactory, httpClient);
-                    return Mistral.GetMistralChatClient(configuration, loggerFactory, httpClient);
+                    return Groq.GetGroqChatClient(configuration, loggerFactory, httpClient);
+                    // return Mistral.GetMistralChatClient(configuration, loggerFactory, httpClient);
                 })
                 .AddSingleton<AgentFactory>()
                 .AddWeatherTool()

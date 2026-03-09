@@ -9,6 +9,7 @@ using Mullai.Tools.FileSystemTool;
 using Mullai.Tools.WeatherTool;
 using Mullai.Providers.LLMProviders.OpenRouter;
 using Mullai.Providers.LLMProviders.Gemini;
+using Mullai.Providers.LLMProviders.Groq;
 using Mullai.Channels.Telegram;
 using Mullai.Global.ServiceConfiguration;
 
