@@ -3,6 +3,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mullai.Agents.Agents;
+using Mullai.Memory.SystemContext;
 using Mullai.Tools.WeatherTool;
 using Mullai.Memory.UserMemory;
 using Mullai.Skills;
@@ -28,7 +29,6 @@ public class AgentFactory
         
         AIAgent agent;
         var chatClient = _serviceProvider.GetRequiredService<IChatClient>();
-        var userMemory = _serviceProvider.GetRequiredService<UserInfoMemory>();
         
         switch (agentName)
         {
@@ -57,7 +57,8 @@ public class AgentFactory
                         Name = assistant.Name,
                         AIContextProviders = [
                             // userMemory,
-                            _serviceProvider.GetRequiredService<FileAgentSkillsProvider>()
+                            // _serviceProvider.GetRequiredService<FileAgentSkillsProvider>(),
+                            _serviceProvider.GetRequiredService<CurrentFolderContext>(),
                         ],
                     },
                      _serviceProvider.GetRequiredService<ILoggerFactory>())

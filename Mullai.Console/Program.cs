@@ -12,7 +12,7 @@ namespace Mullai.Console
         {
             // Initialize the configuration and build service provider
             var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
             

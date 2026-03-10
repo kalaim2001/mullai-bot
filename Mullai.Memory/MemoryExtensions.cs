@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
+using Mullai.Memory.SystemContext;
 using Mullai.Memory.UserMemory;
 
 namespace Mullai.Memory;
@@ -16,7 +17,7 @@ public static class MemoryExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddUserMemory(this IServiceCollection services)
     {
-        services.AddSingleton<UserInfoMemory>();
+        services.AddScoped<CurrentFolderContext>();
         return services;
     }
 }
