@@ -63,7 +63,7 @@ public class AgentFactory
                     },
                      _serviceProvider.GetRequiredService<ILoggerFactory>())
                     .AsBuilder()
-                    .Use(new FunctionCallingMiddleware(_serviceProvider.GetRequiredService<ILogger<FunctionCallingMiddleware>>()).InvokeAsync)
+                    .Use(_serviceProvider.GetRequiredService<FunctionCallingMiddleware>().InvokeAsync)
                     .UseOpenTelemetry(
                         sourceName: OpenTelemetrySettings.ServiceName, 
                         configure: (cfg) => cfg.EnableSensitiveData = true)

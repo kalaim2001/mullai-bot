@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.Agents.AI" Version="1.0.0-rc2" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.3.0" />
     <PackageReference Include="Polly.Core" Version="8.6.6" />
+    <ProjectReference Include="..\Mullai.Abstractions\Mullai.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

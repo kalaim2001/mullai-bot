@@ -6,6 +6,7 @@ using Mullai.Agents;
 using Mullai.Logging.LLMRequestLogging;
 using Mullai.Tools.WeatherTool;
 using Mullai.Memory;
+using Mullai.Middleware.Middlewares;
 using Mullai.OpenTelemetry.OpenTelemetry;
 using Mullai.Providers;
 using Mullai.Skills;
@@ -39,7 +40,7 @@ namespace Mullai.Global.ServiceConfiguration
                 {
                     builder
                         .AddConsole()
-                        .SetMinimumLevel(LogLevel.Trace)
+                        .SetMinimumLevel(LogLevel.None)
                         .AddOpenTelemetry(options =>
                         {
                             options.SetResourceBuilder(
@@ -69,6 +70,7 @@ namespace Mullai.Global.ServiceConfiguration
                     return MullaiChatClientFactory.Create(modelsJsonPath, configuration, httpClient, logger);
                 })
                 .AddSingleton<AgentFactory>()
+                .AddSingleton<FunctionCallingMiddleware>()
                 .AddWeatherTool()
                 .AddCliTool()
                 .AddFileSystemTool()
