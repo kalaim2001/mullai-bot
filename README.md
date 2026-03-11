@@ -48,7 +48,7 @@ Mullai is designed for resilience, flexibility, and developer-friendliness:
 *   **Memory & Skills Management**: Provide agents with persistent `UserInfoMemory` to retain user context across conversations and dynamic `FileAgentSkillsProvider` to equip them with advanced, context-aware capabilities.
 *   **Observability Built-in**: Gain deep insights into your AI agents' operations with full OpenTelemetry integration. This includes distributed traces (parent and per-attempt spans), detailed structured logs for every fallback step, and metrics – all automatically tagged with provider name, model ID, attempt number, and duration.
 *   **Versatile Frontend Choices**:
-    *   **`Mullai.Console`**: A fast, interactive **Text-Based User Interface (TUI)** with streaming responses, perfect for development and quick testing.
+    *   **`Mullai.TUI`**: A fast, interactive **Text-Based User Interface (TUI)** with streaming responses, perfect for development and quick testing.
     *   **`Mullai.Web.Wasm`**: A modern Blazor WebAssembly web application, offering a rich and responsive user interface for broader deployment.
 
 ## Text-Based User Interface (TUI)
@@ -64,7 +64,7 @@ The new TUI provides a seamless way to interact with Mullai agents directly from
 
 1. **Run the TUI**:
    ```bash
-   cd Mullai.Console
+   cd Mullai.TUI
    dotnet run
    ```
 
@@ -85,12 +85,12 @@ graph TD;
     Agents --> Skills[Mullai.Skills];
     Agents --> Middleware[Mullai.Middleware];
     
-    Host[Mullai.Console] --> Agents;
+    Host[Mullai.TUI] --> Agents;
     Host --> Providers[Mullai.Providers];
     Host --> Config[Mullai.Global.ServiceConfiguration];
     Host --> Telemetry[Mullai.Telemetry];
     Host --> Logging[Mullai.Logging];
-    Host --> TUI[Mullai.Console/TUI];
+    Host --> TUI[Mullai.TUI/TUI];
     
     Web[Mullai.Web.Wasm] --> Agents;
     Web --> Providers;
@@ -117,7 +117,7 @@ graph TD;
 *   **`Mullai.Abstractions`**: Defines core interfaces and base classes, ensuring a consistent and extensible foundation.
 *   **`Mullai.Agents`**: The brain of Mullai, housing the `AgentFactory` and definitions for various AI agent personalities.
 *   **`Mullai.Channels.*`**: Projects like `Mullai.Channels.Core`, `Mullai.Channels.Api`, and `Mullai.Channels.Telegram` enable interaction with agents via different communication platforms (e.g., API, Telegram, WebAssembly).
-*   **`Mullai.Console/TUI`**: Provides a **Text-Based User Interface** for interactive agent conversations directly in the terminal.
+*   **`Mullai.TUI/TUI`**: Provides a **Text-Based User Interface** for interactive agent conversations directly in the terminal.
 *   **`Mullai.Global.ServiceConfiguration`**: Centralizes application settings, including LLM model priorities and API keys.
 *   **`Mullai.Logging`**: Provides mechanisms for comprehensive logging, including LLM request/response details.
 *   **`Mullai.Memory` & `Mullai.Skills`**: Manages conversational state, user-specific data, and dynamic, reusable agent capabilities.
@@ -230,7 +230,7 @@ Follow these steps to get Mullai up and running quickly.
 
 4.  **Run the Console Host (for a quick interactive experience):**
     ```bash
-    cd Mullai.Console
+    cd Mullai.TUI
     dotnet run
     ```
 
