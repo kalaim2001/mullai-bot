@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Mullai.Console.TUI.App;
 using Mullai.Global.ServiceConfiguration;
 using Mullai.OpenTelemetry.OpenTelemetry;
+using Mullai.TUI.TUI.App;
 
-namespace Mullai.Console;
+namespace Mullai.TUI;
 
 class Program
 {

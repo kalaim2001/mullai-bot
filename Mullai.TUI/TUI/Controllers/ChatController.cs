@@ -1,10 +1,10 @@
 using Terminal.Gui.App;
 using Microsoft.Agents.AI;
 using Mullai.Agents;
-using Mullai.Console.TUI.State;
-using Mullai.Console.TUI.Views;
+using Mullai.TUI.TUI.State;
+using Mullai.TUI.TUI.Views;
 
-namespace Mullai.Console.TUI.Controllers;
+namespace Mullai.TUI.TUI.Controllers;
 
 /// <summary>
 /// Mediates between the user-facing <see cref="MainWindow"/> and the AI agent.

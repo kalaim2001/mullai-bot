@@ -2,7 +2,7 @@ using Terminal.Gui.Views;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Input;
 
-namespace Mullai.Console.TUI.Views;
+namespace Mullai.TUI.TUI.Views;
 
 /// <summary>
 /// Bottom status bar. Wraps the built-in <see cref="StatusBar"/> and exposes

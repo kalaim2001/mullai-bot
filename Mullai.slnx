@@ -4,7 +4,6 @@
   <Project Path="Mullai.Channels.Api/Mullai.Channels.Api.csproj" />
   <Project Path="Mullai.Channels.Core/Mullai.Channels.Core.csproj" />
   <Project Path="Mullai.Channels.Telegram/Mullai.Channels.Telegram.csproj" />
-  <Project Path="Mullai.Console\Mullai.Console.csproj" />
   <Project Path="Mullai.Global.ServiceConfiguration/Mullai.Global.ServiceConfiguration.csproj" />
   <Project Path="Mullai.Logging/Mullai.Logging.csproj" />
   <Project Path="Mullai.Memory/Mullai.Memory.csproj" />
@@ -13,6 +12,7 @@
   <Project Path="Mullai.Skills/Mullai.Skills.csproj" />
   <Project Path="Mullai.Telemetry\Mullai.Telemetry.csproj" />
   <Project Path="Mullai.Tools/Mullai.Tools.csproj" />
+  <Project Path="Mullai.TUI\Mullai.TUI.csproj" />
   <Project Path="Mullai.Web.Wasm/Mullai.Web.Wasm.Client/Mullai.Web.Wasm.Client.csproj" />
   <Project Path="Mullai.Web.Wasm/Mullai.Web.Wasm/Mullai.Web.Wasm.csproj" />
   <Project Path="Mullai.Tools.Tests/Mullai.Tools.Tests.csproj" />

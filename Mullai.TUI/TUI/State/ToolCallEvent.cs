@@ -1,4 +1,4 @@
-namespace Mullai.Console.TUI.State;
+namespace Mullai.TUI.TUI.State;
 
 /// <summary>Status of a single tool invocation.</summary>
 public enum ToolCallStatus { Running, Succeeded, Failed }

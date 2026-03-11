@@ -1,12 +1,12 @@
 using Terminal.Gui.App;
 using Microsoft.Extensions.DependencyInjection;
 using Mullai.Agents;
-using Mullai.Console.TUI.Controllers;
-using Mullai.Console.TUI.State;
-using Mullai.Console.TUI.Views;
 using Mullai.Middleware.Middlewares;
+using Mullai.TUI.TUI.Controllers;
+using Mullai.TUI.TUI.State;
+using Mullai.TUI.TUI.Views;
 
-namespace Mullai.Console.TUI.App;
+namespace Mullai.TUI.TUI.App;
 
 /// <summary>
 /// Entry-point for the Terminal.Gui application.

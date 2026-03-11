@@ -3,9 +3,9 @@ using TGuiColor = Terminal.Gui.Drawing.Color;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Input;
-using Mullai.Console.TUI.State;
+using Mullai.TUI.TUI.State;
 
-namespace Mullai.Console.TUI.Views;
+namespace Mullai.TUI.TUI.Views;
 
 /// <summary>
 /// Custom view that renders chat messages as styled bubbles:

@@ -2,9 +2,9 @@ using Terminal.Gui.Views;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Input;
 using Terminal.Gui.Drawing;
-using Mullai.Console.TUI.State;
+using Mullai.TUI.TUI.State;
 
-namespace Mullai.Console.TUI.Views;
+namespace Mullai.TUI.TUI.Views;
 
 /// <summary>
 /// Left-pane view hosting the chat history bubble renderer and the input field.

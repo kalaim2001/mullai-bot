@@ -3,9 +3,9 @@ using Terminal.Gui.Views;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Drawing;
 using Mullai.Abstractions.Observability;
-using Mullai.Console.TUI.State;
+using Mullai.TUI.TUI.State;
 
-namespace Mullai.Console.TUI.Views;
+namespace Mullai.TUI.TUI.Views;
 
 /// <summary>
 /// Right-side panel displaying live tool call activity.
