@@ -16,7 +16,7 @@
         <ProjectReference Include="..\..\Mullai.Tools\Mullai.Tools.csproj" />
         <ProjectReference Include="..\..\Mullai.Memory\Mullai.Memory.csproj" />
         <ProjectReference Include="..\..\Mullai.Skills\Mullai.Skills.csproj" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.4" />
     </ItemGroup>
 
 </Project>
