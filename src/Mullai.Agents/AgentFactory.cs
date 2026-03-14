@@ -52,7 +52,7 @@ public class AgentFactory
                                 .. _serviceProvider.GetRequiredService<CliTool>().AsAITools(),
                                 .. _serviceProvider.GetRequiredService<FileSystemTool>().AsAITools(),
                             ],
-                            
+                            AllowMultipleToolCalls =  true
                         },
                         Name = assistant.Name,
                         AIContextProviders = [

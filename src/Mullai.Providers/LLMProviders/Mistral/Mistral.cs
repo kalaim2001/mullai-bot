@@ -31,13 +31,16 @@ public static class Mistral
         string? modelId = null
     )
     {
-        return OpenAICompatibleProvider.CreateChatClient(
-            "Mistral",
-            "https://api.mistral.ai/v1",
-            configuration,
-            httpClient,
-            builder => builder.Use((inner, services) => new MistralChatMessageInterceptor(inner)),
-            modelIdOverride: modelId);
+        var apiKey = configuration["Mistral:ApiKey"];
+        if (string.IsNullOrWhiteSpace(apiKey))
+            throw new InvalidOperationException("Mistral:ApiKey is missing from configuration.");
+
+        var endpoint = configuration["Mistral:Endpoint"] ?? "https://api.mistral.ai/v1/chat/completions";
+        
+        return new MistralChatClient(httpClient, new Uri(endpoint))
+        {
+            OnBeforeRequest = req => req.Headers.Add("Authorization", $"Bearer {apiKey}")
+        };
     }
 
     [Obsolete("Use GetMistralChatClient(configuration, httpClient, modelId) instead.")]
