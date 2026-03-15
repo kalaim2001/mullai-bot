@@ -66,6 +66,7 @@ jobs:
       run: dotnet restore src/Mullai.CLI/Mullai.CLI.csproj
 
     - name: Publish
+      shell: bash
       run: |
         dotnet publish src/Mullai.CLI/Mullai.CLI.csproj \
           -c Release \
