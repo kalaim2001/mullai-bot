@@ -207,17 +207,39 @@ Your sensitive API keys are stored separately in `src/Mullai.Global.ServiceConfi
 ```
 Providers with a missing or empty API key in `appsettings.json` are **silently skipped** at startup and will not crash the application.
 
+## Quick Install (Binary)
+
+### macOS / Linux (Bash)
+Run the following in your terminal:
+```bash
+curl -sSL https://raw.githubusercontent.com/agentmatters/mullai-bot/main/scripts/install.sh | bash
+```
+
+### Windows (PowerShell)
+Run the following in PowerShell (as Administrator if you want to update System PATH, though User PATH is default):
+```powershell
+irm https://raw.githubusercontent.com/agentmatters/mullai-bot/main/scripts/install.ps1 | iex
+```
+
+This will:
+1. Detect your Operating System and Architecture.
+2. Download the latest `Mullai` binary.
+3. Install it to `~/.mullai/bin` (or `$HOME\.mullai\bin` on Windows).
+4. Add the installation directory to your `PATH`.
+
+---
+
 ## Getting Started
 
 Follow these steps to get Mullai up and running quickly.
 
 ### Prerequisites
 
-*   [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+*   (Required for Building) [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 *   **(Optional)** Docker Desktop for running the OpenTelemetry observability stack (Jaeger, Prometheus).
 *   An API key for at least one supported LLM provider (e.g., Gemini, Groq, Cerebras, Mistral, OpenRouter) or a local Ollama instance configured to serve an LLM.
 
-### Setup and Run
+### Setup and Run (From Source)
 
 1.  **Clone the repository:**
     ```bash
