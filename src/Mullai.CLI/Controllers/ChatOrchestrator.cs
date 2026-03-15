@@ -4,14 +4,14 @@ using Mullai.CLI.State;
 
 namespace Mullai.CLI.Controllers;
 
-public class SpectreChatController
+public class ChatOrchestrator
 {
     private readonly AgentFactory _agentFactory;
     private readonly ChatState _state;
     private AIAgent? _agent;
     private AgentSession? _session;
 
-    public SpectreChatController(AgentFactory agentFactory, ChatState state)
+    public ChatOrchestrator(AgentFactory agentFactory, ChatState state)
     {
         _agentFactory = agentFactory;
         _state = state;
