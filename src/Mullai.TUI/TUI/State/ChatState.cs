@@ -3,7 +3,19 @@ using Mullai.Abstractions.Observability;
 namespace Mullai.TUI.TUI.State;
 
 /// <summary>A single message in the conversation.</summary>
-public record ChatMessage(string Content, bool IsUser, DateTimeOffset Timestamp);
+public class ChatMessage
+{
+    public string Content { get; set; }
+    public bool IsUser { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
+
+    public ChatMessage(string content, bool isUser,  DateTimeOffset timestamp)
+    {
+        Content = content;
+        Timestamp = timestamp;
+        IsUser = isUser;
+    }
+}
 
 /// <summary>
 /// Shared, observable state for the chat session.
@@ -37,7 +49,7 @@ public class ChatState
 
     public void AddUserMessage(string text)
     {
-        _messages.Add(new ChatMessage(text, IsUser: true, Timestamp: DateTimeOffset.Now));
+        _messages.Add(new ChatMessage(text, isUser: true, timestamp: DateTimeOffset.Now));
         Notify();
     }
 
@@ -48,17 +60,26 @@ public class ChatState
         Notify();
     }
 
-    public void AppendToken(string token)
+    public void AppendUpdate(string token, bool firstUpdate) 
     {
         StreamingBuffer += token;
+
+        if (firstUpdate)
+        {
+            _messages.Add(new ChatMessage(StreamingBuffer, isUser: false, timestamp: DateTimeOffset.Now));   
+        }
+        else
+        {
+            _messages[^1].Content =  StreamingBuffer;
+        }
+        
+        IsThinking = false;
+        
         Notify();
     }
 
-    public void CommitAgentResponse()
+    public void CompleteAgentResponse()
     {
-        if (!string.IsNullOrEmpty(StreamingBuffer))
-            _messages.Add(new ChatMessage(StreamingBuffer, IsUser: false, Timestamp: DateTimeOffset.Now));
-
         StreamingBuffer = string.Empty;
         IsThinking = false;
         Notify();
@@ -68,7 +89,7 @@ public class ChatState
     {
         IsThinking = false;
         StreamingBuffer = string.Empty;
-        _messages.Add(new ChatMessage($"⚠ {error}", IsUser: false, Timestamp: DateTimeOffset.Now));
+        _messages.Add(new ChatMessage($"⚠ {error}", isUser: false, timestamp: DateTimeOffset.Now));
         Notify();
     }
 
@@ -77,9 +98,9 @@ public class ChatState
     /// <summary>Append a completed tool call observation. Called from ChatController's pump loop.</summary>
     public void AddToolCall(ToolCallObservation observation)
     {
-        _toolCalls.Add(observation);
-        Notify();
+        // _toolCalls.Add(observation);
+        // Notify();
     }
 
-    private void Notify() => StateChanged?.Invoke();
+    public void Notify() => StateChanged?.Invoke();
 }

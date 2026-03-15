@@ -55,15 +55,34 @@ public class ChatController
 
         try
         {
+            var firstUpdate = true;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             await foreach (var update in _agent.RunStreamingAsync(userInput, _session))
             {
                 var text = update?.ToString() ?? string.Empty;
                 if (!string.IsNullOrEmpty(text))
                 {
                     var captured = text;
-                    _app.Invoke(() => _state.AppendToken(captured));
+                    var isFirstUpdate = firstUpdate;
+                    
+                    if (isFirstUpdate || sw.ElapsedMilliseconds > 500)
+                    {
+                        _app.Invoke(() => _state.AppendUpdate(captured, isFirstUpdate));
+                        sw.Restart();
+                    }
+                    else if(!firstUpdate)
+                    {
+                        _state.AppendUpdate(captured, isFirstUpdate);
+                    }
+
+                    if (firstUpdate)
+                    {
+                        firstUpdate = false;
+                    }
                 }
             }
+            // Ensure the final state is marshalled to UI
+            _app.Invoke(() => _state.Notify());
         }
         catch (Exception ex)
         {
@@ -73,7 +92,7 @@ public class ChatController
         {
             _app.Invoke(() =>
             {
-                _state.CommitAgentResponse();
+                _state.CompleteAgentResponse();
                 window.StatusBar.SetStatus("Ready");
                 window.ChatView.FocusInput();
             });

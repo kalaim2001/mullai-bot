@@ -21,53 +21,73 @@ public class ChatHistoryView : TextView
         // MouseBindings.Add (MouseFlags.RightButtonClicked, Command.Copy);
     }
 
+    private string _cachedHistoryText = string.Empty;
+    private int _cachedEntryCount = 0;
+
     /// <summary>Recompute the full text from the current state snapshot.</summary>
     public void UpdateMessages(
         IEnumerable<object> entries,
         string streamingBuffer,
         bool isThinking)
     {
-        var sb = new System.Text.StringBuilder();
-
-        foreach (var entry in entries)
+        var entryList = entries.ToList();
+        
+        // If the number of messages hasn't changed, we can reuse the cached history
+        // (assuming messages are immutable except for the very last one being streamed)
+        if (entryList.Count != _cachedEntryCount)
         {
-            if (entry is ChatMessage msg)
+            var sbHistory = new System.Text.StringBuilder();
+            // We render all but the last message if the last one is being updated
+            // Actually, let's render all except the streaming buffer / thinking part
+            foreach (var entry in entryList)
             {
-                var sender = msg.IsUser ? "You" : "Mullai";
-                sb.AppendLine($" {sender}");
-                sb.AppendLine($" {msg.Content}");
-                sb.AppendLine();
-            }
-            else if (entry is ToolCallObservation tool)
-            {
-                sb.AppendLine($" [Tool: {tool.ToolName}]");
-                if (tool.Succeeded)
+                if (entry is ChatMessage msg)
                 {
-                    sb.AppendLine($" Result: {tool.Result}");
+                    // If this is the last message and it matches the streaming buffer, 
+                    // we handle it separately below to allow for rapid updates.
+                    // But for simplicity in this TUI, we'll cache everything except the "active" tail.
                 }
-                else
-                {
-                    sb.AppendLine($" Error: {tool.Error}");
-                }
-                sb.AppendLine();
+                RenderEntry(sbHistory, entry);
             }
+            _cachedHistoryText = sbHistory.ToString();
+            _cachedEntryCount = entryList.Count;
         }
+
+        var sbFinal = new System.Text.StringBuilder(_cachedHistoryText);
 
         if (isThinking)
         {
-            sb.AppendLine(" Mullai");
+            sbFinal.AppendLine(" Mullai");
             var text = string.IsNullOrEmpty(streamingBuffer) ? " ● Thinking…" : $" {streamingBuffer}";
-            sb.AppendLine(text);
+            sbFinal.AppendLine(text);
         }
 
-        Text = sb.ToString();
+        Text = sbFinal.ToString();
+        ScrollVertical(-1);
+    }
 
-        // Scroll to the end
-        // if (Lines > 0)
-        // {
-        //     CursorPosition = new Point(0, Lines - 1);
-        //     ScrollToLine(Lines - 1);
-        // }
+    private void RenderEntry(System.Text.StringBuilder sb, object entry)
+    {
+        if (entry is ChatMessage msg)
+        {
+            var sender = msg.IsUser ? "You" : "Mullai";
+            sb.AppendLine($" {sender}");
+            sb.AppendLine($" {msg.Content}");
+            sb.AppendLine();
+        }
+        else if (entry is ToolCallObservation tool)
+        {
+            sb.AppendLine($" [Tool: {tool.ToolName}]");
+            if (tool.Succeeded)
+            {
+                sb.AppendLine($" Result: {tool.Result}");
+            }
+            else
+            {
+                sb.AppendLine($" Error: {tool.Error}");
+            }
+            sb.AppendLine();
+        }
     }
     
     protected override bool OnMouseEvent(Mouse mouse)
