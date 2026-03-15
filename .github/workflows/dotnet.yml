@@ -1,33 +1,110 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: .NET
+
 permissions:
-  contents: read
+  contents: write
 
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ "main" ]
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src
+    runs-on: ${{ matrix.os == 'win' && 'windows-latest' || (matrix.os == 'macos' && 'macos-latest' || 'ubuntu-latest') }}
+    strategy:
+      matrix:
+        include:
+          - os: win
+            arch: x64
+            rid: win-x64
+            suffix: .exe
+          - os: win
+            arch: arm64
+            rid: win-arm64
+            suffix: .exe
+          - os: linux
+            arch: x64
+            rid: linux-x64
+            suffix: ''
+          - os: linux
+            arch: arm64
+            rid: linux-arm64
+            suffix: ''
+          - os: macos
+            arch: x64
+            rid: osx-x64
+            suffix: ''
+          - os: macos
+            arch: arm64
+            rid: osx-arm64
+            suffix: ''
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+
+    - name: Get Version
+      id: get_version
+      shell: bash
+      run: |
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=v0.0.1" >> $GITHUB_OUTPUT
+        fi
+
     - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet restore src/Mullai.CLI/Mullai.CLI.csproj
+
+    - name: Publish
+      run: |
+        dotnet publish src/Mullai.CLI/Mullai.CLI.csproj \
+          -c Release \
+          -r ${{ matrix.rid }} \
+          --self-contained true \
+          -p:PublishSingleFile=true \
+          -p:IncludeNativeLibrariesForSelfExtract=true \
+          -o publish
+
+    - name: Rename and Prepare
+      shell: bash
+      run: |
+        VERSION=${{ steps.get_version.outputs.VERSION }}
+        OS=${{ matrix.os }}
+        ARCH=${{ matrix.arch }}
+        SUFFIX=${{ matrix.suffix }}
+        mv publish/Mullai${SUFFIX} Mullai_${VERSION}_${OS}_${ARCH}${SUFFIX}
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Mullai_${{ steps.get_version.outputs.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}
+        path: Mullai_${{ steps.get_version.outputs.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.suffix }}
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+        merge-multiple: true
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: artifacts/*
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
