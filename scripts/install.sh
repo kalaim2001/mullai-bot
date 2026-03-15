@@ -7,7 +7,28 @@
 set -e
 
 # Configuration
-VERSION="v0.0.1"
+REPO="agentmatters/mullai-bot"
+VERSION=${1:-""}
+
+# Fetch latest version if not provided
+if [ -z "$VERSION" ]; then
+    echo "Fetching latest version from GitHub..."
+    # Try /latest first (stable only)
+    LATEST_JSON=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
+    VERSION=$(echo "$LATEST_JSON" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    
+    # Fallback to general releases list if /latest is not found (includes pre-releases)
+    if [ -z "$VERSION" ] || [[ "$LATEST_JSON" == *"Not Found"* ]]; then
+        echo "No stable release found. Checking all releases (including pre-releases)..."
+        VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases" | grep -m 1 '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
+
+    if [ -z "$VERSION" ]; then
+        echo "Error: Could not fetch any version from GitHub. Please specify a version as an argument."
+        exit 1
+    fi
+fi
+
 INSTALL_DIR="$HOME/.mullai"
 BIN_DIR="$INSTALL_DIR/bin"
 BINARY_NAME="Mullai"
