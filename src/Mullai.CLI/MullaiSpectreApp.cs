@@ -23,7 +23,8 @@ public class MullaiSpectreApp
         _services = services;
         _state = new ChatState();
         var agentFactory = _services.GetRequiredService<AgentFactory>();
-        _controller = new ChatOrchestrator(agentFactory, _state);
+        var chatClient = _services.GetRequiredService<Microsoft.Extensions.AI.IChatClient>();
+        _controller = new ChatOrchestrator(agentFactory, _state, chatClient);
         var credentialStorage = _services.GetRequiredService<ICredentialStorage>();
         _configController = new ConfigController(credentialStorage);
         _commandProcessor = new CommandProcessor(_controller, _configController, _state);
@@ -40,9 +41,9 @@ public class MullaiSpectreApp
 
         AnsiConsole.Clear();
         AnsiConsole
-            .Write(new Rule("[yellow]Mullai - AI Chat Console[/]")
+            .Write(new Rule("[DeepPink3_1]Mullai - Your AI Assistant[/]")
                 .RuleStyle("grey")
-                .Justify(Justify.Left));
+                .Justify(Justify.Center));
         AnsiConsole.MarkupLine("[grey]Type [bold white]/quit[/] to exit.[/]");
         AnsiConsole.MarkupLine("[green]Type [bold white]/config[/] to setup models and api keys.[/]");
         AnsiConsole.WriteLine();

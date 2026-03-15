@@ -94,12 +94,10 @@ public class MessageCommand : ICommand
         var grid = new Grid();
         grid.AddColumn(new GridColumn().NoWrap());
         grid.AddColumn(new GridColumn().Padding(2, 0));
-        grid.AddColumn(new GridColumn().Padding(2, 0));
 
         grid.AddRow(
-            new Markup($"[bold cyan]Model:[/] GPT-4o"),
-            new Markup($"[bold cyan]Provider:[/] OpenAI"),
-            new Markup($"[bold cyan]Stats:[/] [green]1250 tks[/] | [yellow]450ms[/]")
+            new Markup($"[bold cyan]Model:[/] {_controller.ModelName}"),
+            new Markup($"[bold cyan]Provider:[/] {_controller.ProviderName}")
         );
 
         return grid;

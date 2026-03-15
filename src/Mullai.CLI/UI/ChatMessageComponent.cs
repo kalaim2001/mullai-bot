@@ -17,7 +17,7 @@ public class ChatMessageComponent : IRenderableComponent
     {
         var content = _message.IsUser ? _message.Content : ProcessHighlights(_message.Content);
         return new Panel(content)
-            .Header(_message.IsUser ? "[green]You[/]" : "[blue]Mullai[/]", _message.IsUser ? Justify.Right : Justify.Left)
+            .Header(_message.IsUser ? "[green]You[/ ]" : "[blue]Mullai[/]", _message.IsUser ? Justify.Right : Justify.Left)
             .Border(_message.IsUser ? BoxBorder.Rounded : BoxBorder.None)
             .BorderStyle(_message.IsUser ? "green" : "blue");
     }
@@ -27,6 +27,7 @@ public class ChatMessageComponent : IRenderableComponent
         if (string.IsNullOrEmpty(text)) return text;
         
         var escaped = Markup.Escape(text);
-        return System.Text.RegularExpressions.Regex.Replace(escaped, @"\*\*(.*?)\*\*", "[bold yellow]$1[/]");
+        var processed = System.Text.RegularExpressions.Regex.Replace(escaped, @"\*\*(.*?)\*\*", "[bold yellow]$1[/]");
+        return System.Text.RegularExpressions.Regex.Replace(processed, @"###\s*(.*?)\.", "[bold orchid1]$1.[/]");
     }
 }

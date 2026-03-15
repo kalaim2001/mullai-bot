@@ -8,13 +8,28 @@ public class ChatOrchestrator
 {
     private readonly AgentFactory _agentFactory;
     private readonly ChatState _state;
+    private readonly Microsoft.Extensions.AI.IChatClient _chatClient;
     private AIAgent? _agent;
     private AgentSession? _session;
 
-    public ChatOrchestrator(AgentFactory agentFactory, ChatState state)
+    public ChatOrchestrator(AgentFactory agentFactory, ChatState state, Microsoft.Extensions.AI.IChatClient chatClient)
     {
         _agentFactory = agentFactory;
         _state = state;
+        _chatClient = chatClient;
+    }
+
+    public string ModelName => GetLabelPart(1);
+    public string ProviderName => GetLabelPart(0);
+
+    private string GetLabelPart(int index)
+    {
+        if (_chatClient is Mullai.Providers.MullaiChatClient mullaiClient)
+        {
+            var parts = mullaiClient.ActiveLabel.Split('/');
+            return parts.Length > index ? parts[index] : "Unknown";
+        }
+        return "Unknown";
     }
 
     public async Task InitialiseAsync()

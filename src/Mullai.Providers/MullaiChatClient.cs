@@ -33,6 +33,7 @@ public class MullaiChatClient : IChatClient
     }
 
     public ChatClientMetadata Metadata => _metadata;
+    public string ActiveLabel => _clients.Count > 0 ? _clients[0].Label : "Unknown/Unknown";
 
     // ── GetResponseAsync ───────────────────────────────────────────────────
     public async Task<ChatResponse> GetResponseAsync(
