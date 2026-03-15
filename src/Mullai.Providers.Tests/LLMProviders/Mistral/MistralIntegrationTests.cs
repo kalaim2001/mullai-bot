@@ -25,12 +25,7 @@ public class MistralIntegrationTests
     [Fact]
     public async Task GetResponseAsync_WithRealAPI_ReturnsValidResponse()
     {
-        if (string.IsNullOrEmpty(_apiKey))
-        {
-            // Skip test if API key is not provided
-            return;
-        }
-
+        Skip.If(string.IsNullOrEmpty(_apiKey), "Missing API Key");
         // Arrange
         var httpClient = new HttpClient();
         var endpoint = _configuration["Mistral:Endpoint"] ?? "https://api.mistral.ai/v1/chat/completions";
@@ -58,10 +53,7 @@ public class MistralIntegrationTests
     [Fact]
     public async Task GetStreamingResponseAsync_WithRealAPI_ReturnsValidStream()
     {
-        if (string.IsNullOrEmpty(_apiKey))
-        {
-            return;
-        }
+        Skip.If(string.IsNullOrEmpty(_apiKey), "Missing API Key");
 
         // Arrange
         var httpClient = new HttpClient();
