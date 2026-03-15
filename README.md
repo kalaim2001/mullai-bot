@@ -1,4 +1,4 @@
-# Mullai — Advanced AI Assistant with TUI
+# Mullai — Advanced AI Assistant with Rich Console UI
 
 <p align="center">
     <picture>
@@ -26,12 +26,12 @@
 
 Mullai is a powerful and flexible AI Agent framework built entirely on **.NET**. It provides a robust foundation for creating intelligent, multi-turn conversational AI agents that are equipped with a rich set of **tools, memory, and skills**. Leveraging `Microsoft.Extensions.AI` and `Microsoft.Agents.AI`, Mullai empowers developers to build sophisticated AI assistants with a highly scalable and observable architecture.
 
-## New: Text-Based User Interface (TUI)
+## New: Rich Console Application
 
-Mullai now includes a **rich Text-Based User Interface (TUI)** for seamless interaction with your AI agents directly in the terminal. The TUI provides:
+Mullai now includes a **rich Console Application** (powered by Spectre.Console) for seamless interaction with your AI agents directly in the terminal. The Console App provides:
 
 - **Interactive Chat**: Engage in conversations with your AI agent in real-time.
-- **Tool Call Observability**: Monitor tool calls and their execution status.
+- **Tool Call Observability**: Monitor tool calls and their execution status visually.
 - **Multi-Panel Layout**: View chat history, current conversation, and status information simultaneously.
 - **Streaming Responses**: Experience responses in real-time as they are generated.
 
@@ -42,19 +42,19 @@ Mullai now includes a **rich Text-Based User Interface (TUI)** for seamless inte
 Mullai is designed for resilience, flexibility, and developer-friendliness:
 
 *   **Multi-Provider with Automatic Fallback**: The `MullaiChatClient` seamlessly integrates multiple Large Language Model (LLM) providers (Gemini, Groq, Cerebras, Mistral, OpenRouter, Ollama, and more). Providers are prioritized, and if one fails, the next in line is automatically tried – ensuring high availability without restarts or downtime.
-*   **`models.json` — Centralized Model Catalog**: Manage all LLM provider and model metadata (priority, capabilities, pricing, context window, enabled status) from a single `Mullai.Global.ServiceConfiguration/models.json` file. Effortlessly switch providers or models by editing JSON, eliminating the need for code changes.
+*   **`models.json` — Centralized Model Catalog**: Manage all LLM provider and model metadata (priority, capabilities, pricing, context window, enabled status) from a single `src/Mullai.Global.ServiceConfiguration/models.json` file. Effortlessly switch providers or models by editing JSON, eliminating the need for code changes.
 *   **Extensible Agent Architecture**: Define distinct AI agent personalities and behaviors. Each agent can be customized with specific instructions, toolsets, and conversational styles (e.g., "Assistant", "Joker").
 *   **Rich Tool Ecosystem**: Empower your agents to interact with the external world using powerful built-in tools like `WeatherTool`, `CliTool` (for command-line execution), and `FileSystemTool` (for file operations). The framework is designed for easy creation of custom tools.
 *   **Robust Middleware Pipeline**: Intercept and process agent interactions at various stages using a flexible middleware pipeline. Implement critical functionalities such as `FunctionCallingMiddleware` (to enable tool use), `PIIMiddleware` (for sensitive data handling), and `GuardrailMiddleware` (to enforce safety and policy compliance).
 *   **Memory & Skills Management**: Provide agents with persistent `UserInfoMemory` to retain user context across conversations and dynamic `FileAgentSkillsProvider` to equip them with advanced, context-aware capabilities.
 *   **Observability Built-in**: Gain deep insights into your AI agents' operations with full OpenTelemetry integration. This includes distributed traces (parent and per-attempt spans), detailed structured logs for every fallback step, and metrics – all automatically tagged with provider name, model ID, attempt number, and duration.
 *   **Versatile Frontend Choices**:
-    *   **`Mullai.TUI`**: A fast, interactive **Text-Based User Interface (TUI)** with streaming responses, perfect for development and quick testing.
-    *   **`Mullai.Web.Wasm`**: A modern Blazor WebAssembly web application, offering a rich and responsive user interface for broader deployment.
+    *   **`Mullai.CLI`**: A fast, interactive **Rich Console Application** with streaming responses, perfect for development and quick testing.
+    *   **`src/Mullai.Web.Wasm`**: A modern Blazor WebAssembly web application, offering a rich and responsive user interface for broader deployment.
 
-## Text-Based User Interface (TUI)
+## Rich Console Application
 
-The new TUI provides a seamless way to interact with Mullai agents directly from your terminal. Key features include:
+The new Console App (built with Spectre.Console) provides a seamless way to interact with Mullai agents directly from your terminal. Key features include:
 
 - **Interactive Chat**: Engage in real-time conversations with your AI agent.
 - **Tool Call Monitoring**: Observe tool calls and their execution status.
@@ -63,9 +63,9 @@ The new TUI provides a seamless way to interact with Mullai agents directly from
 
 ### Example Usage
 
-1. **Run the TUI**:
+1. **Run the Console App**:
    ```bash
-   cd Mullai.TUI
+   cd src/Mullai.CLI
    dotnet run
    ```
 
@@ -86,12 +86,11 @@ graph TD;
     Agents --> Skills[Mullai.Skills];
     Agents --> Middleware[Mullai.Middleware];
     
-    Host[Mullai.TUI] --> Agents;
+    Host[Mullai.CLI] --> Agents;
     Host --> Providers[Mullai.Providers];
     Host --> Config[Mullai.Global.ServiceConfiguration];
     Host --> Telemetry[Mullai.Telemetry];
     Host --> Logging[Mullai.Logging];
-    Host --> TUI[Mullai.TUI/TUI];
     
     Web[Mullai.Web.Wasm] --> Agents;
     Web --> Providers;
@@ -118,7 +117,7 @@ graph TD;
 *   **`Mullai.Abstractions`**: Defines core interfaces and base classes, ensuring a consistent and extensible foundation.
 *   **`Mullai.Agents`**: The brain of Mullai, housing the `AgentFactory` and definitions for various AI agent personalities.
 *   **`Mullai.Channels.*`**: Projects like `Mullai.Channels.Core`, `Mullai.Channels.Api`, and `Mullai.Channels.Telegram` enable interaction with agents via different communication platforms (e.g., API, Telegram, WebAssembly).
-*   **`Mullai.TUI/TUI`**: Provides a **Text-Based User Interface** for interactive agent conversations directly in the terminal.
+*   **`src/Mullai.CLI`**: Provides a **Rich Console Application** for interactive agent conversations directly in the terminal.
 *   **`Mullai.Global.ServiceConfiguration`**: Centralizes application settings, including LLM model priorities and API keys.
 *   **`Mullai.Logging`**: Provides mechanisms for comprehensive logging, including LLM request/response details.
 *   **`Mullai.Memory` & `Mullai.Skills`**: Manages conversational state, user-specific data, and dynamic, reusable agent capabilities.
@@ -133,7 +132,7 @@ Mullai separates LLM model configuration from sensitive API keys for enhanced fl
 
 ### `models.json` — Model Catalog
 
-All model and provider metadata is defined in `Mullai.Global.ServiceConfiguration/models.json`. This file acts as your central catalog for available LLMs.
+All model and provider metadata is defined in `src/Mullai.Global.ServiceConfiguration/models.json`. This file acts as your central catalog for available LLMs.
 
 ```json
 {
@@ -186,7 +185,7 @@ All model and provider metadata is defined in `Mullai.Global.ServiceConfiguratio
 
 ### `appsettings.json` — API Keys Only
 
-Your sensitive API keys are stored separately in `Mullai.Global.ServiceConfiguration/appsettings.json`.
+Your sensitive API keys are stored separately in `src/Mullai.Global.ServiceConfiguration/appsettings.json`.
 **Important:** Do NOT commit `appsettings.json` with your actual API keys to public repositories. Use environment variables or a secure configuration management system in production.
 
 ```json
@@ -222,22 +221,22 @@ Follow these steps to get Mullai up and running quickly.
 2.  **Configure API keys:**
     Copy the sample configuration file and populate your API keys.
     ```bash
-    cp Mullai.Global.ServiceConfiguration/appsettings.sample.json Mullai.Global.ServiceConfiguration/appsettings.json
-    # Now, open Mullai.Global.ServiceConfiguration/appsettings.json and paste your API keys.
+    cp src/Mullai.Global.ServiceConfiguration/appsettings.sample.json src/Mullai.Global.ServiceConfiguration/appsettings.json
+    # Now, open src/Mullai.Global.ServiceConfiguration/appsettings.json and paste your API keys.
     ```
 
 3.  **(Optional) Adjust provider priority:**
-    If you wish to change the order in which LLM providers are tried, or enable/disable specific models, edit `Mullai.Global.ServiceConfiguration/models.json`.
+    If you wish to change the order in which LLM providers are tried, or enable/disable specific models, edit `src/Mullai.Global.ServiceConfiguration/models.json`.
 
-4.  **Run the Console Host (for a quick interactive experience):**
+4.  **Run the Console App (for a quick interactive experience):**
     ```bash
-    cd Mullai.TUI
+    cd src/Mullai.CLI
     dotnet run
     ```
 
 5.  **Run the Blazor Web App (for a rich UI experience):**
     ```bash
-    cd Mullai.Web.Wasm/Mullai.Web.Wasm
+    cd src/Mullai.Web.Wasm/Mullai.Web.Wasm
     dotnet run
     ```
 
@@ -253,7 +252,7 @@ Mullai provides deep observability out-of-the-box, essential for understanding a
 
 ## Contributing
 
-We welcome contributions from the community! Whether you want to add new LLM providers, create innovative tools or middleware, improve the existing Blazor UI, enhance the TUI, or improve documentation, your efforts are highly appreciated.
+We welcome contributions from the community! Whether you want to add new LLM providers, create innovative tools or middleware, improve the existing Blazor UI, enhance the CLI, or improve documentation, your efforts are highly appreciated.
 
 Please review our **[Contributing Guidelines](CONTRIBUTING.md)** for detailed information on:
 - Code of Conduct
