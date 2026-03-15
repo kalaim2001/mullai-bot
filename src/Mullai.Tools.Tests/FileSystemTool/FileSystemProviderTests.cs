@@ -1,6 +1,6 @@
 using Mullai.Tools.FileSystemTool;
 using Xunit;
-using FluentAssertions;
+
 using System.IO;
 using System.Threading.Tasks;
 using System;
@@ -38,10 +38,10 @@ public class FileSystemProviderTests : IDisposable
         var result = await _provider.WriteFileAsync(filePath, content);
 
         // Assert
-        result.Should().Contain("Successfully");
-        File.Exists(filePath).Should().BeTrue();
+        Assert.Contains("Successfully", result);
+        Assert.True(File.Exists(filePath));
         var writtenContent = await File.ReadAllTextAsync(filePath);
-        writtenContent.Should().Be(content);
+        Assert.Equal(content, writtenContent);
     }
 
     [Fact]
@@ -56,9 +56,9 @@ public class FileSystemProviderTests : IDisposable
         var result = await _provider.WriteFileAsync(filePath, content);
 
         // Assert
-        result.Should().Contain("Successfully");
+        Assert.Contains("Successfully", result);
         var writtenContent = await File.ReadAllTextAsync(filePath);
-        writtenContent.Should().Be(content);
+        Assert.Equal(content, writtenContent);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class FileSystemProviderTests : IDisposable
         var result = await _provider.ReadFileAsync(filePath);
 
         // Assert
-        result.Should().Be(expectedContent);
+        Assert.Equal(expectedContent, result);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class FileSystemProviderTests : IDisposable
         var result = await _provider.ReadFileAsync(filePath);
 
         // Assert
-        result.Should().Contain("Error: File not found");
+        Assert.Contains("Error: File not found", result);
     }
 
     [Fact]
@@ -104,9 +104,9 @@ public class FileSystemProviderTests : IDisposable
         var result = _provider.ListDirectory(_testDirectory);
 
         // Assert
-        result.Should().Contain("[DIR]  subdir");
-        result.Should().Contain("[FILE] a.txt");
-        result.Should().Contain("[FILE] b.txt");
+        Assert.Contains("[DIR]  subdir", result);
+        Assert.Contains("[FILE] a.txt", result);
+        Assert.Contains("[FILE] b.txt", result);
     }
 
     [Fact]
@@ -119,6 +119,6 @@ public class FileSystemProviderTests : IDisposable
         var result = _provider.ListDirectory(badDirectory);
 
         // Assert
-        result.Should().Contain("Error: Directory not found");
+        Assert.Contains("Error: Directory not found", result);
     }
 }

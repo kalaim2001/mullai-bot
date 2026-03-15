@@ -1,6 +1,6 @@
 using Mullai.Tools.FileSystemTool;
 using Xunit;
-using FluentAssertions;
+
 using System.Threading.Tasks;
 using System.IO;
 using System;
@@ -41,8 +41,8 @@ public class FileSystemToolTests : IDisposable
         var result = await _tool.WriteFileAsync(filePath, content);
 
         // Assert
-        result.Should().Contain("Successfully");
-        File.Exists(filePath).Should().BeTrue();
+        Assert.Contains("Successfully", result);
+        Assert.True(File.Exists(filePath));
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class FileSystemToolTests : IDisposable
         var result = await _tool.ReadFileAsync(filePath);
 
         // Assert
-        result.Should().Be("Read from tool");
+        Assert.Equal("Read from tool", result);
     }
 
     [Fact]
@@ -66,11 +66,11 @@ public class FileSystemToolTests : IDisposable
         var tools = _tool.AsAITools().ToList();
 
         // Assert
-        tools.Should().NotBeNull();
-        tools.Should().HaveCount(2);
+        Assert.NotNull(tools);
+        Assert.Equal(2, tools.Count);
         
         var toolNames = tools.Select(t => t.Name).ToList();
-        toolNames.Should().Contain("ReadFile");
-        toolNames.Should().Contain("WriteFile");
+        Assert.Contains("ReadFile", toolNames);
+        Assert.Contains("WriteFile", toolNames);
     }
 }

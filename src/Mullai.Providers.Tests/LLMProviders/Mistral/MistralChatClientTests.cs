@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using FluentAssertions;
+
 using Microsoft.Extensions.AI;
 using Moq;
 using Moq.Protected;
@@ -57,8 +57,8 @@ public class MistralChatClientTests
         var response = await client.GetResponseAsync(new[] { new ChatMessage(ChatRole.User, "hi") });
 
         // Assert
-        response.Messages[0].Text.Should().Be("Hello from mocked Mistral");
-        response.ResponseId.Should().Be("msg-123");
+        Assert.Equal("Hello from mocked Mistral", response.Messages[0].Text);
+        Assert.Equal("msg-123", response.ResponseId);
         
         _handlerMock.Protected().Verify(
             "SendAsync",
@@ -103,9 +103,9 @@ public class MistralChatClientTests
         }
 
         // Assert
-        updates.Should().HaveCount(2);
-        updates[0].Text.Should().Be("H");
-        updates[1].Text.Should().Be("ello");
-        updates[0].Role.Should().Be(ChatRole.Assistant);
+        Assert.Equal(2, updates.Count);
+        Assert.Equal("H", updates[0].Text);
+        Assert.Equal("ello", updates[1].Text);
+        Assert.Equal(ChatRole.Assistant, updates[0].Role);
     }
 }

@@ -1,6 +1,6 @@
 using Mullai.Tools.CliTool;
 using Xunit;
-using FluentAssertions;
+
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -26,7 +26,7 @@ public class CliToolTests
         var result = await _tool.ExecuteCommandAsync(command);
 
         // Assert
-        result.Should().Contain("test");
+        Assert.Contains("test", result);
     }
 
     [Fact]
@@ -36,13 +36,13 @@ public class CliToolTests
         var tools = _tool.AsAITools().ToList();
 
         // Assert
-        tools.Should().NotBeNull();
-        tools.Should().HaveCount(4);
+        Assert.NotNull(tools);
+        Assert.Equal(4, tools.Count);
         
         var toolNames = tools.Select(t => t.Name).ToList();
-        toolNames.Should().Contain("ExecuteCommand");
-        toolNames.Should().Contain("CreateSession");
-        toolNames.Should().Contain("ExecuteSessionCommand");
-        toolNames.Should().Contain("CloseSession");
+        Assert.Contains("ExecuteCommand", toolNames);
+        Assert.Contains("CreateSession", toolNames);
+        Assert.Contains("ExecuteSessionCommand", toolNames);
+        Assert.Contains("CloseSession", toolNames);
     }
 }

@@ -1,6 +1,6 @@
 using Mullai.Tools.CliTool;
 using Xunit;
-using FluentAssertions;
+
 using System.Threading.Tasks;
 
 namespace Mullai.Tools.Tests.CliTool;
@@ -24,8 +24,8 @@ public class CliProviderTests
         var result = await _provider.ExecuteCommandAsync(command);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Should().Contain("hello world");
+        Assert.NotNull(result);
+        Assert.Contains("hello world", result);
     }
 
     [Fact]
@@ -38,8 +38,8 @@ public class CliProviderTests
         var result = await _provider.ExecuteCommandAsync(command);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Should().Contain("this_command_does_not_exist_12345");
+        Assert.NotNull(result);
+        Assert.Contains("this_command_does_not_exist_12345", result);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class CliProviderTests
             var result = await _provider.ExecuteSessionCommandAsync(sessionId, pwdCmd);
 
             // Assert
-            result.Should().Contain(testDirName);
+            Assert.Contains(testDirName, result);
         }
         finally
         {

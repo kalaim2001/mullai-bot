@@ -1,4 +1,4 @@
-using FluentAssertions;
+
 using Microsoft.Extensions.AI;
 using Mullai.Providers.LLMProviders.Mistral;
 using Xunit;
@@ -25,12 +25,12 @@ public class MistralConsolidatorTests
 
         // Assert
         // Expected: [Tool 1, Tool 2, Assistant (Empty), User]
-        result.Should().HaveCount(4);
-        result[0].Role.Should().Be(ChatRole.Tool);
-        result[1].Role.Should().Be(ChatRole.Tool);
-        result[2].Role.Should().Be(ChatRole.Assistant);
-        result[2].Text.Should().Be("\u200b");
-        result[3].Role.Should().Be(ChatRole.User);
+        Assert.Equal(4, result.Count);
+        Assert.Equal(ChatRole.Tool, result[0].Role);
+        Assert.Equal(ChatRole.Tool, result[1].Role);
+        Assert.Equal(ChatRole.Assistant, result[2].Role);
+        Assert.Equal("\u200b", result[2].Text);
+        Assert.Equal(ChatRole.User, result[3].Role);
     }
 
     [Fact]
@@ -48,9 +48,9 @@ public class MistralConsolidatorTests
 
         // Assert
         // Expected: [Tool 1, Assistant (Empty), User]
-        result.Should().HaveCount(3);
-        result[0].Role.Should().Be(ChatRole.Tool);
-        result[1].Role.Should().Be(ChatRole.Assistant);
-        result[2].Role.Should().Be(ChatRole.User);
+        Assert.Equal(3, result.Count);
+        Assert.Equal(ChatRole.Tool, result[0].Role);
+        Assert.Equal(ChatRole.Assistant, result[1].Role);
+        Assert.Equal(ChatRole.User, result[2].Role);
     }
 }

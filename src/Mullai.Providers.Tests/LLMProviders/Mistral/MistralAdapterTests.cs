@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using FluentAssertions;
+
 using Microsoft.Extensions.AI;
 using Mullai.Providers.LLMProviders.Mistral;
 using Xunit;
@@ -25,11 +25,11 @@ public class MistralAdapterTests
         var request = _adapter.MapRequest(messages, options, isStreaming: false);
 
         // Assert
-        request.Should().NotBeNull();
-        request.Model.Should().Be("mistral-large-latest");
-        request.Messages.Should().HaveCount(1);
-        request.Messages[0].Role.Should().Be("user");
-        request.Messages[0].Content.Should().Be("Hello Mistral");
+        Assert.NotNull(request);
+        Assert.Equal("mistral-large-latest", request.Model);
+        Assert.Single(request.Messages);
+        Assert.Equal("user", request.Messages[0].Role);
+        Assert.Equal("Hello Mistral", request.Messages[0].Content);
     }
 
     [Fact]
@@ -49,10 +49,10 @@ public class MistralAdapterTests
         var request = _adapter.MapRequest(messages, options, isStreaming: false);
 
         // Assert
-        request.FrequencyPenalty.Should().Be(0.5f);
-        request.PresencePenalty.Should().Be(0.8f);
-        request.Temperature.Should().Be(0.7f);
-        request.MaxTokens.Should().Be(100);
+        Assert.Equal(0.5f, request.FrequencyPenalty);
+        Assert.Equal(0.8f, request.PresencePenalty);
+        Assert.Equal(0.7f, request.Temperature);
+        Assert.Equal(100, request.MaxTokens);
     }
 
     [Fact]
@@ -70,11 +70,11 @@ public class MistralAdapterTests
         var request = _adapter.MapRequest(messages, options, isStreaming: false);
 
         // Assert
-        request.ResponseFormat.Should().NotBeNull();
-        request.ResponseFormat!.Type.Should().Be(MistralResponseFormatType.JsonSchema);
-        request.ResponseFormat.JsonSchema.Should().NotBeNull();
-        request.ResponseFormat.JsonSchema!.Name.Should().Be("response");
-        request.ResponseFormat.JsonSchema.Strict.Should().BeTrue();
+        Assert.NotNull(request.ResponseFormat);
+        Assert.Equal(MistralResponseFormatType.JsonSchema, request.ResponseFormat!.Type);
+        Assert.NotNull(request.ResponseFormat.JsonSchema);
+        Assert.Equal("response", request.ResponseFormat.JsonSchema!.Name);
+        Assert.True(request.ResponseFormat.JsonSchema.Strict);
     }
 
     [Fact]
@@ -96,13 +96,13 @@ public class MistralAdapterTests
         var result = _adapter.MapResponse(responseDto);
 
         // Assert
-        result.Messages.Should().HaveCount(1);
-        result.Messages[0].Role.Should().Be(ChatRole.Assistant);
-        result.Messages[0].Text.Should().Be("Hello human");
-        result.ResponseId.Should().Be("test-id");
-        result.Usage!.InputTokenCount.Should().Be(10);
-        result.Usage.OutputTokenCount.Should().Be(20);
-        result.Usage.TotalTokenCount.Should().Be(30);
+        Assert.Single(result.Messages);
+        Assert.Equal(ChatRole.Assistant, result.Messages[0].Role);
+        Assert.Equal("Hello human", result.Messages[0].Text);
+        Assert.Equal("test-id", result.ResponseId);
+        Assert.Equal(10, result.Usage!.InputTokenCount);
+        Assert.Equal(20, result.Usage.OutputTokenCount);
+        Assert.Equal(30, result.Usage.TotalTokenCount);
     }
 
     [Fact]
@@ -122,10 +122,10 @@ public class MistralAdapterTests
         var result = _adapter.MapStreamingUpdate(updateDto);
 
         // Assert
-        result.Contents.Should().HaveCount(1);
-        result.Text.Should().Be("Hello ");
-        result.Role.Should().Be(ChatRole.Assistant);
-        result.ResponseId.Should().Be("stream-id");
+        Assert.Single(result.Contents);
+        Assert.Equal("Hello ", result.Text);
+        Assert.Equal(ChatRole.Assistant, result.Role);
+        Assert.Equal("stream-id", result.ResponseId);
     }
 
     [Fact]
@@ -149,13 +149,13 @@ public class MistralAdapterTests
         var request = _adapter.MapRequest(messages, options, isStreaming: false);
 
         // Assert
-        request.Messages.Should().HaveCount(2);
-        request.Messages[0].Role.Should().Be("tool");
-        request.Messages[0].ToolCallId.Should().Be("call_1");
-        request.Messages[0].Content.Should().Be("result_1");
+        Assert.Equal(2, request.Messages.Count);
+        Assert.Equal("tool", request.Messages[0].Role);
+        Assert.Equal("call_1", request.Messages[0].ToolCallId);
+        Assert.Equal("result_1", request.Messages[0].Content);
         
-        request.Messages[1].Role.Should().Be("tool");
-        request.Messages[1].ToolCallId.Should().Be("call_2");
-        request.Messages[1].Content.Should().Be("result_2");
+        Assert.Equal("tool", request.Messages[1].Role);
+        Assert.Equal("call_2", request.Messages[1].ToolCallId);
+        Assert.Equal("result_2", request.Messages[1].Content);
     }
 }

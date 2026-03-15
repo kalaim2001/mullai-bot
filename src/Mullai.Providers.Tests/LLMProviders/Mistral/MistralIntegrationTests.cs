@@ -1,7 +1,7 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Mullai.Providers.LLMProviders.Mistral;
-using FluentAssertions;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -46,9 +46,9 @@ public class MistralIntegrationTests
         var response = await client.GetResponseAsync(messages);
 
         // Assert
-        response.Should().NotBeNull();
-        response.Messages.Should().NotBeEmpty();
-        response.Messages[0].Text.Should().NotBeNullOrEmpty();
+        Assert.NotNull(response);
+        Assert.NotEmpty(response.Messages);
+        Assert.False(string.IsNullOrEmpty(response.Messages[0].Text));
         
         _testOutputHelper.WriteLine($"Response: {response.Messages[0].Text}");
     }
@@ -79,10 +79,10 @@ public class MistralIntegrationTests
         }
 
         // Assert
-        updates.Should().NotBeEmpty();
+        Assert.NotEmpty(updates);
         var fullText = string.Concat(updates.Select(u => u.Text));
-        fullText.Should().Contain("1");
-        fullText.Should().Contain("5");
+        Assert.Contains("1", fullText);
+        Assert.Contains("5", fullText);
         
         _testOutputHelper.WriteLine($"Streaming Response: {fullText}");
     }
