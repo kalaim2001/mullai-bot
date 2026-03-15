@@ -3,19 +3,22 @@ using Microsoft.Extensions.Configuration;
 using Mullai.Providers.LLMProviders.Mistral;
 using FluentAssertions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Mullai.Providers.Tests.LLMProviders.Mistral;
 
 public class MistralIntegrationTests
 {
+    private readonly ITestOutputHelper _testOutputHelper;
     private readonly IConfiguration _configuration;
     private readonly string? _apiKey;
 
-    public MistralIntegrationTests()
+    public MistralIntegrationTests(ITestOutputHelper testOutputHelper)
     {
+        _testOutputHelper = testOutputHelper;
         _configuration = new ConfigurationBuilder()
-            // .AddJsonFile("appsettings.json", optional: true)
-            // .AddJsonFile("appsettings.Test.json", optional: true)
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile("appsettings.Test.json", optional: true)
             .AddEnvironmentVariables()
             .Build();
 
@@ -47,7 +50,7 @@ public class MistralIntegrationTests
         response.Messages.Should().NotBeEmpty();
         response.Messages[0].Text.Should().NotBeNullOrEmpty();
         
-        Console.WriteLine($"Response: {response.Messages[0].Text}");
+        _testOutputHelper.WriteLine($"Response: {response.Messages[0].Text}");
     }
 
     [SkippableFact]
@@ -81,6 +84,6 @@ public class MistralIntegrationTests
         fullText.Should().Contain("1");
         fullText.Should().Contain("5");
         
-        Console.WriteLine($"Streaming Response: {fullText}");
+        _testOutputHelper.WriteLine($"Streaming Response: {fullText}");
     }
 }
