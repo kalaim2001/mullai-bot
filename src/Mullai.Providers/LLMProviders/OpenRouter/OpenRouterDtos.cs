@@ -101,3 +101,43 @@ public class OpenRouterUsage
     [JsonPropertyName("total_tokens")]
     public int TotalTokens { get; set; }
 }
+
+public class OpenRouterModelsResponse
+{
+    [JsonPropertyName("data")]
+    public List<OpenRouterModelData> Data { get; set; } = new();
+}
+
+public class OpenRouterModelData
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+
+    [JsonPropertyName("context_length")]
+    public int ContextLength { get; set; }
+
+    [JsonPropertyName("pricing")]
+    public OpenRouterModelPricing? Pricing { get; set; }
+}
+
+public class OpenRouterModelPricing
+{
+    [JsonPropertyName("prompt")]
+    public string? Prompt { get; set; }
+
+    [JsonPropertyName("completion")]
+    public string? Completion { get; set; }
+
+    [JsonPropertyName("request")]
+    public string? Request { get; set; }
+
+    [JsonPropertyName("image")]
+    public string? Image { get; set; }
+}
+

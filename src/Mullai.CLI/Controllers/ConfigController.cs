@@ -7,16 +7,30 @@ namespace Mullai.CLI.Controllers;
 public class ConfigController
 {
     private readonly ICredentialStorage _credentialStorage;
+    private readonly HttpClient _httpClient;
+    private MullaiProvidersConfig? _config;
 
-    public ConfigController(ICredentialStorage credentialStorage)
+    public ConfigController(ICredentialStorage credentialStorage, HttpClient httpClient)
     {
         _credentialStorage = credentialStorage;
+        _httpClient = httpClient;
     }
 
     public List<MullaiProviderDescriptor> LoadProviders()
     {
-        var config = Mullai.Providers.MullaiChatClientFactory.GetHardcodedConfig();
-        return config.Providers;
+        if (_config == null)
+        {
+            _config = Mullai.Providers.MullaiChatClientFactory.LoadConfig();
+        }
+        return _config.Providers;
+    }
+
+    public void SaveProviders()
+    {
+        if (_config != null)
+        {
+            Mullai.Providers.MullaiChatClientFactory.SaveConfig(_config);
+        }
     }
 
     public bool IsProviderEnabled(string providerName, bool defaultValue) => 
@@ -39,4 +53,11 @@ public class ConfigController
 
     public void DeleteApiKey(string providerName) => 
         _credentialStorage.DeleteApiKey(providerName);
+
+    public async Task<List<MullaiModelDescriptor>> GetModelsAsync(string providerName)
+    {
+        var apiKey = _credentialStorage.GetApiKey(providerName);
+        return await Mullai.Providers.MullaiChatClientFactory.GetModelsForProviderAsync(providerName, _httpClient, apiKey);
+    }
 }
+

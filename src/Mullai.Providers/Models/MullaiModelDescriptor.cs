@@ -8,6 +8,9 @@ public class MullaiModelDescriptor
     /// <summary>Human-readable display name.</summary>
     public string ModelName { get; set; } = string.Empty;
 
+    /// <summary>A brief description of the model.</summary>
+    public string Description { get; set; } = string.Empty;
+
     /// <summary>Lower number = tried first within the same provider.</summary>
     public int Priority { get; set; } = 1;
 

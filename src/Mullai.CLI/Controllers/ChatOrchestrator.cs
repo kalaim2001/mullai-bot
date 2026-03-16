@@ -1,6 +1,8 @@
 using Microsoft.Agents.AI;
 using Mullai.Agents;
+using Mullai.Abstractions.Configuration;
 using Mullai.CLI.State;
+using System.Net.Http;
 
 namespace Mullai.CLI.Controllers;
 
@@ -9,14 +11,41 @@ public class ChatOrchestrator
     private readonly AgentFactory _agentFactory;
     private readonly ChatState _state;
     private readonly Microsoft.Extensions.AI.IChatClient _chatClient;
+    private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
+    private readonly ICredentialStorage _credentialStorage;
+    private readonly HttpClient _httpClient;
     private AIAgent? _agent;
     private AgentSession? _session;
 
-    public ChatOrchestrator(AgentFactory agentFactory, ChatState state, Microsoft.Extensions.AI.IChatClient chatClient)
+    public ChatOrchestrator(
+        AgentFactory agentFactory, 
+        ChatState state, 
+        Microsoft.Extensions.AI.IChatClient chatClient,
+        Microsoft.Extensions.Configuration.IConfiguration configuration,
+        ICredentialStorage credentialStorage,
+        HttpClient httpClient)
     {
         _agentFactory = agentFactory;
         _state = state;
         _chatClient = chatClient;
+        _configuration = configuration;
+        _credentialStorage = credentialStorage;
+        _httpClient = httpClient;
+    }
+
+    public void RefreshClients()
+    {
+        if (_chatClient is Mullai.Providers.MullaiChatClient mullaiClient)
+        {
+            var config = Mullai.Providers.MullaiChatClientFactory.LoadConfig();
+            var newClients = Mullai.Providers.MullaiChatClientFactory.BuildOrderedClients(
+                config, 
+                _configuration, 
+                _credentialStorage, 
+                _httpClient);
+            
+            mullaiClient.UpdateClients(newClients);
+        }
     }
 
     public string ModelName => GetLabelPart(1);

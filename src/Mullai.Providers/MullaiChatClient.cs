@@ -16,7 +16,7 @@ public class MullaiChatClient : IChatClient
     internal static readonly ActivitySource ActivitySource =
         new(OpenTelemetrySettings.ServiceName, "1.0.0");
 
-    private readonly IReadOnlyList<(string Label, IChatClient Client)> _clients;
+    private IReadOnlyList<(string Label, IChatClient Client)> _clients;
     private readonly ILogger<MullaiChatClient> _logger;
     private readonly ChatClientMetadata _metadata;
 
@@ -27,6 +27,21 @@ public class MullaiChatClient : IChatClient
         _clients = clients ?? Array.Empty<(string, IChatClient)>();
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _metadata = new ChatClientMetadata("MullaiChatClient");
+    }
+
+    public void UpdateClients(IReadOnlyList<(string Label, IChatClient Client)> newClients)
+    {
+        var oldClients = _clients;
+        _clients = newClients ?? Array.Empty<(string, IChatClient)>();
+        
+        // Dispose old clients to avoid memory leaks if they were replaced
+        if (oldClients != null)
+        {
+            foreach (var (_, client) in oldClients)
+            {
+                try { client.Dispose(); } catch { /* ignore */ }
+            }
+        }
     }
 
     public ChatClientMetadata Metadata => _metadata;

@@ -7,6 +7,7 @@ using Mullai.CLI.State;
 using Mullai.CLI.Commands;
 using Mullai.Middleware.Middlewares;
 using Spectre.Console;
+using System.Net.Http;
 
 namespace Mullai.CLI;
 
@@ -18,21 +19,34 @@ public class MullaiSpectreApp
     private readonly ConfigController _configController;
     private readonly CommandProcessor _commandProcessor;
 
-    public MullaiSpectreApp(IServiceProvider services)
+    public MullaiSpectreApp(IServiceProvider _services)
     {
-        _services = services;
+        this._services = _services;
         _state = new ChatState();
         var agentFactory = _services.GetRequiredService<AgentFactory>();
         var chatClient = _services.GetRequiredService<Microsoft.Extensions.AI.IChatClient>();
-        _controller = new ChatOrchestrator(agentFactory, _state, chatClient);
+        var configuration = _services.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
         var credentialStorage = _services.GetRequiredService<ICredentialStorage>();
-        _configController = new ConfigController(credentialStorage);
+        var httpClient = _services.GetRequiredService<HttpClient>();
+
+        _controller = new ChatOrchestrator(
+            agentFactory, 
+            _state, 
+            chatClient, 
+            configuration, 
+            credentialStorage, 
+            httpClient);
+
+        _configController = new ConfigController(credentialStorage, httpClient);
         _commandProcessor = new CommandProcessor(_controller, _configController, _state);
 
         // Wire the FunctionCallingMiddleware to emit tool call observations
         // into the singleton channel.
         var middleware = _services.GetRequiredService<FunctionCallingMiddleware>();
-        middleware.OnToolCallObserved = obs => ToolCallChannel.Instance.Writer.TryWrite(obs);
+        if (middleware != null)
+        {
+            middleware.OnToolCallObserved = obs => ToolCallChannel.Instance.Writer.TryWrite(obs);
+        }
     }
 
     public async Task RunAsync()
@@ -59,6 +73,12 @@ public class MullaiSpectreApp
             if (command != null)
             {
                 await command.ExecuteAsync();
+
+                // If it was a config command, refresh the clients to apply any key changes
+                if (command is ConfigCommand)
+                {
+                    _controller.RefreshClients();
+                }
             }
         }
     }

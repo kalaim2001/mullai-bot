@@ -1,6 +1,7 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Mullai.Providers.Common;
 using Mullai.Providers.LLMProviders.Cerebras;
 using Mullai.Providers.LLMProviders.Gemini;
 using Mullai.Providers.LLMProviders.Groq;
@@ -19,6 +20,10 @@ namespace Mullai.Providers;
 /// </summary>
 public static class MullaiChatClientFactory
 {
+    private static readonly List<IModelMetadataAdapter> _adapters = new()
+    {
+        new OpenRouterModelAdapter()
+    };
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -39,10 +44,48 @@ public static class MullaiChatClientFactory
         HttpClient httpClient,
         ILogger<MullaiChatClient> logger)
     {
-        var config = GetHardcodedConfig();
+        var config = LoadConfig();
         var clients = BuildOrderedClients(config, configuration, credentialStorage, httpClient);
 
         return new MullaiChatClient(clients, logger);
+    }
+
+    private static string GetConfigPath()
+    {
+        var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var configDir = Path.Combine(homeDir, ".mullai");
+        return Path.Combine(configDir, "models.json");
+    }
+
+    public static MullaiProvidersConfig LoadConfig()
+    {
+        var path = GetConfigPath();
+        if (File.Exists(path))
+        {
+            try
+            {
+                var json = File.ReadAllText(path);
+                return JsonSerializer.Deserialize<MullaiProvidersConfig>(json, _jsonOptions) ?? GetHardcodedConfig();
+            }
+            catch
+            {
+                return GetHardcodedConfig();
+            }
+        }
+        return GetHardcodedConfig();
+    }
+
+    public static void SaveConfig(MullaiProvidersConfig config)
+    {
+        var path = GetConfigPath();
+        var dir = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions(_jsonOptions) { WriteIndented = true });
+        File.WriteAllText(path, json);
     }
 
     public static MullaiProvidersConfig GetHardcodedConfig()
@@ -231,7 +274,7 @@ public static class MullaiChatClientFactory
         };
     }
 
-    private static List<(string Label, IChatClient Client)> BuildOrderedClients(
+    public static List<(string Label, IChatClient Client)> BuildOrderedClients(
         MullaiProvidersConfig config,
         IConfiguration configuration,
         ICredentialStorage credentialStorage,
@@ -319,4 +362,21 @@ public static class MullaiChatClientFactory
             .AddInMemoryCollection(dict)
             .Build();
     }
+
+    public static async Task<List<MullaiModelDescriptor>> GetModelsForProviderAsync(
+        string providerName, 
+        HttpClient httpClient, 
+        string? apiKey = null)
+    {
+        var adapter = _adapters.FirstOrDefault(a => a.ProviderName.Equals(providerName, StringComparison.OrdinalIgnoreCase));
+        if (adapter == null)
+        {
+            // Fallback to hardcoded if no adapter exists
+            var hardcoded = GetHardcodedConfig().Providers.FirstOrDefault(p => p.Name.Equals(providerName, StringComparison.OrdinalIgnoreCase));
+            return hardcoded?.Models ?? new List<MullaiModelDescriptor>();
+        }
+
+        return await adapter.FetchModelsAsync(httpClient, apiKey);
+    }
 }
+
