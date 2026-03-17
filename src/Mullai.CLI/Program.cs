@@ -1,34 +1,41 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Mullai.CLI.Components;
+using Mullai.CLI.Controllers;
+using Mullai.CLI.State;
 using Mullai.Global.ServiceConfiguration;
-using Mullai.CLI;
+using Mullai.Middleware.Middlewares;
+using RazorConsole.Core;
 
-namespace Mullai.CLI;
+var hostBuilder = Host.CreateDefaultBuilder(args)
+    .UseRazorConsole<App>();
 
-class Program
+hostBuilder.ConfigureAppConfiguration((context, config) =>
 {
-    static async Task Main(string[] args)
+    config.SetBasePath(AppContext.BaseDirectory);
+    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+});
+
+hostBuilder.ConfigureServices((context, services) =>
+{
+    services.ConfigureMullaiServices(context.Configuration);
+
+    services.AddSingleton<ChatState>();
+    services.AddSingleton<ChatOrchestrator>();
+    services.AddSingleton<ConfigController>();
+
+    services.Configure<ConsoleAppOptions>(options =>
     {
-        try
-        {
-            var config = new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .Build();
+        options.AutoClearConsole = false;
+        options.EnableTerminalResizing = true;
+    });
+});
 
-            var serviceProvider = ServiceConfiguration.ConfigureMullaiServices(config);
+var host = hostBuilder.Build();
 
-            var app = new MullaiSpectreApp(serviceProvider);
-            await app.RunAsync();
-        }
-        catch (Exception ex)
-        {
-#if DEBUG
-            throw;
-#else
-            Spectre.Console.AnsiConsole.MarkupLine($"[red]Error:[/] {Spectre.Console.Markup.Escape(ex.Message)}");
-            Environment.Exit(1);
-#endif
-        }
-    }
-}
+// Wire tool call observations into the singleton channel
+var middleware = host.Services.GetRequiredService<FunctionCallingMiddleware>();
+middleware.OnToolCallObserved = obs => ToolCallChannel.Instance.Writer.TryWrite(obs);
+
+await host.RunAsync();

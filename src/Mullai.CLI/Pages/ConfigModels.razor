@@ -1,0 +1,184 @@
+@page "/config/models"
+@namespace Mullai.CLI.Pages
+
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using Microsoft.AspNetCore.Components
+@using RazorConsole.Components
+@using Spectre.Console
+@using Mullai.CLI.Controllers
+@using Mullai.Abstractions.Models
+
+@inject ConfigController Config
+@inject NavigationManager Nav
+
+<Figlet Content="Models" Color="@Color.Yellow" />
+
+<Padder Padding="@(new Padding(1, 0, 0, 0))">
+    <Rows>
+        @if (_providers == null)
+        {
+            <Markup Content="Loading providers..." Foreground="@Color.Grey" />
+        }
+        else if (_providers.Count == 0)
+        {
+            <Markup Content="No providers available. Configure API keys first." Foreground="@Color.Yellow" />
+        }
+        else
+        {
+            <Markup Content="Select a provider to manage:" Foreground="@Color.White" />
+            <Newline />
+
+            @foreach (var provider in _providers)
+            {
+                var isEnabled = Config.IsProviderEnabled(provider.Name, provider.Enabled);
+                var statusIcon = isEnabled ? "✓" : "✗";
+                var statusColor = isEnabled ? Color.Green : Color.Red;
+
+                <Columns>
+                    <TextButton Content="@($" {statusIcon} {provider.Name} ({provider.Models.Count} models) ")"
+                                OnClick="@(() => ToggleProvider(provider.Name, isEnabled))"
+                                BackgroundColor="@Color.Grey15"
+                                FocusedColor="@statusColor" />
+                    <TextButton Content="  📋 Models  "
+                                OnClick="@(() => SelectProvider(provider.Name))"
+                                BackgroundColor="@Color.Grey15"
+                                FocusedColor="@Color.Blue" />
+                    <TextButton Content="  🔄 Refresh  "
+                                OnClick="@(() => RefreshModels(provider.Name))"
+                                BackgroundColor="@Color.Grey15"
+                                FocusedColor="@Color.Cyan1" />
+                </Columns>
+            }
+
+            @if (_selectedProvider != null)
+            {
+                <Newline />
+                <Markup Content="@($"Models for {_selectedProvider}:")" Foreground="@Color.Blue" Decoration="@Decoration.Bold" />
+
+                @if (_filteredModels != null && _filteredModels.Count > 0)
+                {
+                    @foreach (var model in _filteredModels.Take(20))
+                    {
+                        var isModelEnabled = Config.IsModelEnabled(_selectedProvider, model.ModelId, model.Enabled);
+                        var icon = isModelEnabled ? "✓" : "✗";
+                        var color = isModelEnabled ? Color.Green : Color.Red;
+                        var pricing = model.Pricing != null
+                            ? $"${model.Pricing.InputPer1kTokens:F6}/${model.Pricing.OutputPer1kTokens:F6}"
+                            : "Free";
+
+                        <TextButton Content="@($" {icon} {model.ModelName}  ctx:{model.ContextWindow:N0}  {pricing} ")"
+                                    OnClick="@(() => ToggleModel(_selectedProvider, model.ModelId, isModelEnabled))"
+                                    BackgroundColor="@Color.Grey15"
+                                    FocusedColor="@color" />
+                    }
+
+                    @if (_filteredModels.Count > 20)
+                    {
+                        <Markup Content="@($"... and {_filteredModels.Count - 20} more models")" Foreground="@Color.Grey" />
+                    }
+                }
+                else
+                {
+                    <Markup Content="No models found. Try refreshing." Foreground="@Color.Yellow" />
+                }
+            }
+        }
+
+        @if (_statusMessage != null)
+        {
+            <Newline />
+            <Markup Content="@_statusMessage" Foreground="@Color.Green" />
+        }
+
+        @if (_isLoading)
+        {
+            <Newline />
+            <Columns>
+                <RazorConsole.Components.Spinner SpinnerType="@Spectre.Console.Spinner.Known.Dots" />
+                <Markup Content="@_loadingMessage" Foreground="@Color.Grey" />
+            </Columns>
+        }
+    </Rows>
+</Padder>
+
+<Newline />
+<TextButton Content="  ← Back to Settings  "
+            OnClick="@(() => Nav.NavigateTo("/config"))"
+            BackgroundColor="@Color.Grey15"
+            FocusedColor="@Color.Yellow" />
+
+<Newline />
+<Align Horizontal="@HorizontalAlignment.Center">
+    <Markup Content="Tab to navigate • Enter to toggle/select" Foreground="@Color.Grey58" />
+</Align>
+
+@code {
+    private List<MullaiProviderDescriptor>? _providers;
+    private string? _selectedProvider;
+    private List<MullaiModelDescriptor>? _filteredModels;
+    private string? _statusMessage;
+    private bool _isLoading;
+    private string _loadingMessage = "";
+
+    protected override void OnInitialized()
+    {
+        _providers = Config.LoadProviders();
+    }
+
+    private void ToggleProvider(string providerName, bool currentlyEnabled)
+    {
+        Config.SetProviderEnabled(providerName, !currentlyEnabled);
+        Config.SaveProviders();
+        _statusMessage = $"{providerName} {(!currentlyEnabled ? "enabled" : "disabled")}.";
+        StateHasChanged();
+    }
+
+    private void SelectProvider(string providerName)
+    {
+        _selectedProvider = providerName;
+        var provider = _providers?.FirstOrDefault(p => p.Name == providerName);
+        _filteredModels = provider?.Models;
+        _statusMessage = null;
+        StateHasChanged();
+    }
+
+    private async Task RefreshModels(string providerName)
+    {
+        _isLoading = true;
+        _loadingMessage = $"Fetching models for {providerName}...";
+        StateHasChanged();
+
+        try
+        {
+            var models = await Config.GetModelsAsync(providerName);
+            var provider = _providers?.FirstOrDefault(p => p.Name == providerName);
+            if (provider != null)
+            {
+                provider.Models = models;
+                Config.SaveProviders();
+                _statusMessage = $"Fetched {models.Count} models for {providerName}.";
+                _selectedProvider = providerName;
+                _filteredModels = models;
+            }
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleModel(string providerName, string modelId, bool currentlyEnabled)
+    {
+        Config.SetModelEnabled(providerName, modelId, !currentlyEnabled);
+        Config.SaveProviders();
+        _statusMessage = $"Model {modelId} {(!currentlyEnabled ? "enabled" : "disabled")}.";
+        StateHasChanged();
+    }
+}

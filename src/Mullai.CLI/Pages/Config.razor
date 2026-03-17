@@ -1,0 +1,36 @@
+@page "/config"
+@namespace Mullai.CLI.Pages
+
+@using Microsoft.AspNetCore.Components
+@using RazorConsole.Components
+@using Spectre.Console
+
+@inject NavigationManager Nav
+
+<Figlet Content="Settings" Color="@Color.Yellow" />
+
+<Align Horizontal="@HorizontalAlignment.Center">
+    <Panel Border="BoxBorder.Double" BorderColor="@Color.Yellow">
+        <Rows>
+            <TextButton Content="    Models & Providers    "
+                        OnClick="@(() => Nav.NavigateTo("/config/models"))"
+                        BackgroundColor="@Color.Grey15"
+                        FocusedColor="@Color.Green" />
+            <Newline />
+            <TextButton Content="    API Keys              "
+                        OnClick="@(() => Nav.NavigateTo("/config/apikeys"))"
+                        BackgroundColor="@Color.Grey15"
+                        FocusedColor="@Color.Blue" />
+            <Newline />
+            <TextButton Content="    ← Back to Chat        "
+                        OnClick="@(() => Nav.NavigateTo("/"))"
+                        BackgroundColor="@Color.Grey15"
+                        FocusedColor="@Color.Yellow" />
+        </Rows>
+    </Panel>
+</Align>
+
+<Newline />
+<Align Horizontal="@HorizontalAlignment.Center">
+    <Markup Content="Tab to navigate • Enter to select" Foreground="@Color.Grey58" />
+</Align>

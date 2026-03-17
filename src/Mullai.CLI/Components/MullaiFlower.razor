@@ -1,0 +1,47 @@
+@namespace Mullai.CLI.Components
+
+@using Spectre.Console
+@using RazorConsole.Components
+
+<SpectreCanvas Pixels="@Pixels" CanvasWidth="@Width" CanvasHeight="@Height" PixelWidth="2"/>
+
+@code {
+    private const int Width = 8;
+    private const int Height = 8;
+    private (int x, int y, Color color)[] Pixels { get; set; } = [];
+
+    protected override void OnInitialized()
+    {
+        var pixels = new List<(int, int, Color)>();
+
+        Color p = Color.HotPink;    // Petal
+        Color d = Color.DeepPink1;   // Petal Detail
+        Color c = Color.Yellow;     // Center
+
+        // 8x8 grid: High-efficiency 4-petal bloom
+        Color?[,] sprite = new Color?[8, 8]
+        {
+            { null, null, p,    p,    p,    p,    null, null },
+            { null, p,    p,    d,    d,    p,    p,    null },
+            { p,    p,    d,    c,    c,    d,    p,    p    },
+            { p,    d,    c,    c,    c,    c,    d,    p    },
+            { p,    d,    c,    c,    c,    c,    d,    p    },
+            { p,    p,    d,    c,    c,    d,    p,    p    },
+            { null, p,    p,    d,    d,    p,    p,    null },
+            { null, null, p,    p,    p,    p,    null, null },
+        };
+
+        for (int y = 0; y < 8; y++)
+        {
+            for (int x = 0; x < 8; x++)
+            {
+                if (sprite[y, x].HasValue)
+                {
+                    pixels.Add((x, y, sprite[y, x]!.Value));
+                }
+            }
+        }
+
+        Pixels = pixels.ToArray();
+    }
+}

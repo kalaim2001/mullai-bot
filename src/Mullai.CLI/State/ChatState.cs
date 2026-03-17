@@ -66,15 +66,25 @@ public class ChatState
 
         if (firstUpdate)
         {
-            _messages.Add(new ChatMessage(StreamingBuffer, isUser: false, timestamp: DateTimeOffset.Now));   
+            _messages.Add(new ChatMessage(
+                StreamingBuffer, 
+                isUser: false, 
+                timestamp: DateTimeOffset.Now
+            ));
         }
         else
         {
-            _messages[^1].Content =  StreamingBuffer;
+            var last = _messages[^1];
+
+            _messages[^1] = new ChatMessage(
+                StreamingBuffer,
+                isUser: last.IsUser,
+                timestamp: last.Timestamp
+            );
         }
-        
+    
         IsThinking = false;
-        
+    
         Notify();
     }
 

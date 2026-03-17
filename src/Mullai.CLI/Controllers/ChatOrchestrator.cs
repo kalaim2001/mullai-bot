@@ -1,8 +1,9 @@
 using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using Mullai.Agents;
 using Mullai.Abstractions.Configuration;
 using Mullai.CLI.State;
-using System.Net.Http;
 
 namespace Mullai.CLI.Controllers;
 
@@ -10,7 +11,7 @@ public class ChatOrchestrator
 {
     private readonly AgentFactory _agentFactory;
     private readonly ChatState _state;
-    private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
+    private readonly IConfiguration _configuration;
     private readonly IMullaiConfigurationManager _configManager;
     private readonly HttpClient _httpClient;
     private MullaiAgent? _agent;
@@ -19,7 +20,7 @@ public class ChatOrchestrator
     public ChatOrchestrator(
         AgentFactory agentFactory, 
         ChatState state, 
-        Microsoft.Extensions.Configuration.IConfiguration configuration,
+        IConfiguration configuration,
         IMullaiConfigurationManager configManager,
         HttpClient httpClient)
     {
@@ -56,6 +57,8 @@ public class ChatOrchestrator
 
     public async Task InitialiseAsync()
     {
+        if (_agent != null) return; // Already initialized
+        
         _agent = _agentFactory.GetAgent("Assistant");
         _session = await _agent.CreateSessionAsync();
 
