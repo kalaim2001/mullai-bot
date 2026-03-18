@@ -7,8 +7,7 @@ namespace Mullai.Tools.WeatherTool;
 /// <summary>
 /// The agent plugin that provides weather, geolocation, and current time information.
 /// </summary>
-/// <param name="weatherProvider">The weather provider to get weather information.</param>
-/// <param name="geolocationProvider">The geolocation provider to get location coordinates.</param>
+[System.ComponentModel.Description("A tool for retrieving weather information, geographic coordinates, and local time for any location worldwide.")]
 public class WeatherTool(WeatherProvider weatherProvider, GeolocationProvider geolocationProvider)
 {
     /// <summary>
@@ -16,7 +15,9 @@ public class WeatherTool(WeatherProvider weatherProvider, GeolocationProvider ge
     /// </summary>
     /// <param name="locationName">The name of the location to search for.</param>
     /// <returns>A formatted string with the location details including coordinates.</returns>
-    public async Task<string> GetLocationCoordinatesAsync(string locationName)
+    [System.ComponentModel.Description("Resolves a location name (like 'London' or 'Seattle') into geographic coordinates (latitude and longitude) and other metadata like elevation and timezone.")]
+    public async Task<string> GetLocationCoordinatesAsync(
+        [System.ComponentModel.Description("The name of the city, landmark, or region to lookup.")] string locationName)
     {
         var result = await geolocationProvider.SearchFirstAsync(locationName);
         
@@ -51,7 +52,9 @@ public class WeatherTool(WeatherProvider weatherProvider, GeolocationProvider ge
     /// </summary>
     /// <param name="locationName">The name of the location to search for.</param>
     /// <returns>A list of matching geolocation results.</returns>
-    public async Task<List<GeolocationResult>> SearchLocationsAsync(string locationName)
+    [System.ComponentModel.Description("Searches for multiple matching locations by name and returns a list of potential candidates with their coordinates.")]
+    public async Task<List<GeolocationResult>> SearchLocationsAsync(
+        [System.ComponentModel.Description("The name of the location to search for.")] string locationName)
     {
         return await geolocationProvider.SearchAsync(locationName);
     }
@@ -64,7 +67,9 @@ public class WeatherTool(WeatherProvider weatherProvider, GeolocationProvider ge
     /// </remarks>
     /// <param name="location">The location to get the weather for.</param>
     /// <returns>The weather information for the specified location.</returns>
-    public string GetWeather(string location)
+    [System.ComponentModel.Description("Retrieves the current weather conditions (temperature, humidity, description) for a given location.")]
+    public string GetWeather(
+        [System.ComponentModel.Description("The name of the location to get weather for.")] string location)
     {
         return weatherProvider.GetWeather(location);
     }
@@ -78,7 +83,10 @@ public class WeatherTool(WeatherProvider weatherProvider, GeolocationProvider ge
     /// <param name="sp">The service provider to resolve the <see cref="CurrentTimeProvider"/>.</param>
     /// <param name="location">The location to get the current time for.</param>
     /// <returns>The current date and time as a <see cref="DateTimeOffset"/>.</returns>
-    public DateTimeOffset GetCurrentTime(IServiceProvider sp, string location)
+    [System.ComponentModel.Description("Returns the current date and time for a specific location, accounting for its local timezone.")]
+    public DateTimeOffset GetCurrentTime(
+        IServiceProvider sp, 
+        [System.ComponentModel.Description("The name of the location to get the current time for.")] string location)
     {
         // Resolve the CurrentTimeProvider from the service provider
         var currentTimeProvider = sp.GetRequiredService<CurrentTimeProvider>();

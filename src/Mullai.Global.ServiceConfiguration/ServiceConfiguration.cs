@@ -13,6 +13,7 @@ using Mullai.Abstractions.Configuration;
 using Mullai.Skills;
 using Mullai.Tools.CliTool;
 using Mullai.Tools.FileSystemTool;
+using Mullai.Tools.WordTool;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 
@@ -79,6 +80,7 @@ namespace Mullai.Global.ServiceConfiguration
                 .AddWeatherTool()
                 .AddCliTool()
                 .AddFileSystemTool()
+                .AddWordTool()
                 .AddUserMemory()
                 .AddMullaiSkills();
             

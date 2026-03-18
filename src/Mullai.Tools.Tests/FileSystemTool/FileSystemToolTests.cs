@@ -31,14 +31,14 @@ public class FileSystemToolTests : IDisposable
     }
 
     [Fact]
-    public async Task WriteFileAsync_DelegatesToProvider()
+    public async Task WriteFileSystemFile_DelegatesToProvider()
     {
         // Arrange
         var filePath = Path.Combine(_testDirectory, "toolwrite.txt");
         var content = "Tool content";
 
         // Act
-        var result = await _tool.WriteFileAsync(filePath, content);
+        var result = await _tool.WriteFileSystemFile(filePath, content);
 
         // Assert
         Assert.Contains("Successfully", result);
@@ -46,14 +46,14 @@ public class FileSystemToolTests : IDisposable
     }
 
     [Fact]
-    public async Task ReadFileAsync_DelegatesToProvider()
+    public async Task ReadFileSystemFile_DelegatesToProvider()
     {
         // Arrange
         var filePath = Path.Combine(_testDirectory, "toolread.txt");
         await File.WriteAllTextAsync(filePath, "Read from tool");
 
         // Act
-        var result = await _tool.ReadFileAsync(filePath);
+        var result = await _tool.ReadFileSystemFile(filePath);
 
         // Assert
         Assert.Equal("Read from tool", result);
@@ -70,7 +70,7 @@ public class FileSystemToolTests : IDisposable
         Assert.Equal(2, tools.Count);
         
         var toolNames = tools.Select(t => t.Name).ToList();
-        Assert.Contains("ReadFile", toolNames);
-        Assert.Contains("WriteFile", toolNames);
+        Assert.Contains("ReadFileSystemFile", toolNames);
+        Assert.Contains("WriteFileSystemFile", toolNames);
     }
 }

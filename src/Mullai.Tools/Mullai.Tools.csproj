@@ -10,6 +10,7 @@
       <PackageReference Include="Microsoft.Agents.AI" />
       <PackageReference Include="Microsoft.Extensions.AI" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+      <PackageReference Include="Open-XML-SDK" />
     </ItemGroup>
 
 </Project>

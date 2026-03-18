@@ -17,7 +17,7 @@ public static class MemoryExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddUserMemory(this IServiceCollection services)
     {
-        services.AddScoped<CurrentFolderContext>();
+        services.AddSingleton<CurrentFolderContext>();
         return services;
     }
 }

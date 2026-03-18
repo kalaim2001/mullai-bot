@@ -17,13 +17,13 @@ public class CliToolTests
     }
 
     [Fact]
-    public async Task ExecuteCommandAsync_DelegatesToProvider()
+    public async Task ExecuteCliCommand_DelegatesToProvider()
     {
         // Arrange
         var command = "echo \"test\"";
 
         // Act
-        var result = await _tool.ExecuteCommandAsync(command);
+        var result = await _tool.ExecuteCliCommand(command);
 
         // Assert
         Assert.Contains("test", result);
@@ -40,9 +40,9 @@ public class CliToolTests
         Assert.Equal(4, tools.Count);
         
         var toolNames = tools.Select(t => t.Name).ToList();
-        Assert.Contains("ExecuteCommand", toolNames);
-        Assert.Contains("CreateSession", toolNames);
-        Assert.Contains("ExecuteSessionCommand", toolNames);
-        Assert.Contains("CloseSession", toolNames);
+        Assert.Contains("ExecuteCliCommand", toolNames);
+        Assert.Contains("CreateCliSession", toolNames);
+        Assert.Contains("ExecuteCliSessionCommand", toolNames);
+        Assert.Contains("CloseCliSession", toolNames);
     }
 }

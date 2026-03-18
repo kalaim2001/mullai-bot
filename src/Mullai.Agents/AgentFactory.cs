@@ -9,6 +9,7 @@ using Mullai.Memory.UserMemory;
 using Mullai.Skills;
 using Mullai.Tools.CliTool;
 using Mullai.Tools.FileSystemTool;
+using Mullai.Tools.WordTool;
 using Mullai.Middleware.Middlewares;
 using Mullai.OpenTelemetry.OpenTelemetry;
 
@@ -48,6 +49,7 @@ public class AgentFactory
                                 .. _serviceProvider.GetRequiredService<WeatherTool>().AsAITools(),
                                 .. _serviceProvider.GetRequiredService<CliTool>().AsAITools(),
                                 .. _serviceProvider.GetRequiredService<FileSystemTool>().AsAITools(),
+                                .. _serviceProvider.GetRequiredService<WordTool>().AsAITools(),
                             ],
                             AllowMultipleToolCalls = true
                         },
