@@ -1,17 +1,26 @@
 @page "/"
 @rendermode InteractiveServer
-@using Microsoft.Agents.AI
+@using Mullai.Abstractions.Orchestration
+@using Mullai.Abstractions.Messaging
 @using Mullai.Agents
+@using Microsoft.AspNetCore.SignalR.Client
 @using System.Text
 @using Markdig
+@inject IPlanner Planner
+@inject IWorkflowEngine WorkflowEngine
 @inject AgentFactory AgentFactory
+@inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
 
 <PageTitle>Mullai Chat</PageTitle>
 
 <div class="chat-container">
     <div class="chat-header">
         <h2>Mullai Assistant</h2>
+        <div class="status-badge @(hubConnection?.State == HubConnectionState.Connected ? "online" : "offline")">
+            @(hubConnection?.State == HubConnectionState.Connected ? "Connected" : "Reconnecting...")
+        </div>
     </div>
 
     <div class="chat-history" @ref="chatHistoryRef">
@@ -19,6 +28,15 @@
         {
             <div class="message @(msg.IsUser ? "user-message" : "agent-message")">
                 <div class="message-content">@((MarkupString)Markdig.Markdown.ToHtml(msg.Content, _pipeline))</div>
+                @if (msg.TaskUpdates.Any())
+                {
+                    <div class="task-log">
+                        @foreach (var update in msg.TaskUpdates)
+                        {
+                            <div class="task-step">@update</div>
+                        }
+                    </div>
+                }
             </div>
         }
         @if (isThinking)
@@ -72,7 +90,9 @@
         border-bottom: 1px solid var(--surface);
     }
     .chat-header h2 { margin: 0; font-weight: 600; color: var(--text-primary); }
-    .chat-header p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+    .status-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-top: 4px; }
+    .online { background: #10b981; color: white; }
+    .offline { background: #ef4444; color: white; }
 
     .chat-history {
         flex: 1;
@@ -87,6 +107,7 @@
     .message {
         max-width: 80%;
         display: flex;
+        flex-direction: column;
     }
 
     .user-message {
@@ -112,36 +133,13 @@
         word-wrap: break-word;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    
-    .message-content pre {
-        background: #000;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        overflow-x: auto;
-    }
-    .message-content code {
-        font-family: monospace;
-    }
 
+    .task-log { font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px; border-left: 2px solid var(--primary); padding-left: 8px; }
+    .task-step { margin-bottom: 2px; }
+    
     .thinking-message .message-content {
         animation: pulse 1.5s infinite;
         opacity: 0.7;
-    }
-
-    .message-content table {
-        border-collapse: collapse;
-        width: 100%;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-    }
-    .message-content th, .message-content td {
-        border: 1px solid var(--text-secondary);
-        padding: 0.5rem;
-        text-align: left;
-    }
-    .message-content th {
-        background-color: rgba(255, 255, 255, 0.1);
-        font-weight: 600;
     }
 
     @@keyframes pulse {
@@ -189,31 +187,48 @@
         transition: transform 0.2s, background 0.2s;
         flex-shrink: 0;
     }
-    button:hover:not(:disabled) {
-        transform: scale(1.05);
-        background: var(--user-msg);
-    }
-    button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
 </style>
 
 @code {
-    private MullaiAgent _agent = null!;
-    private AgentSession _session = null!;
     private string currentInput = "";
     private bool isThinking = false;
     private ElementReference chatHistoryRef;
+    private HubConnection? hubConnection;
+    private string sessionId = Guid.NewGuid().ToString();
     
     private List<ChatMessage> messages = new();
-
     private MarkdownPipeline _pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
     
     protected override async Task OnInitializedAsync()
     {
-        _agent = AgentFactory.GetAgent("Assistant");
-        _session = await _agent.CreateSessionAsync();
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/hubs/fabric"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<string, string, string?>("OnTaskUpdate", (nodeId, status, message) =>
+        {
+            var lastMsg = messages.LastOrDefault(m => !m.IsUser);
+            if (lastMsg != null)
+            {
+                lastMsg.TaskUpdates.Add($"[{status}] {message ?? nodeId}");
+                InvokeAsync(StateHasChanged);
+            }
+        });
+
+        hubConnection.On<string, string>("OnAgentToken", (agentName, token) =>
+        {
+            var lastMsg = messages.LastOrDefault(m => !m.IsUser);
+            if (lastMsg != null)
+            {
+                lastMsg.Content += token;
+                isThinking = false;
+                InvokeAsync(StateHasChanged);
+            }
+        });
+
+        await hubConnection.StartAsync();
+        await hubConnection.SendAsync("JoinSession", sessionId);
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
@@ -243,24 +258,13 @@
 
         try
         {
-            var firstUpdate = true;
-            await foreach (var update in _agent.RunStreamingAsync(userText, _session))
+            var graph = await Planner.PlanAsync(userText, cancellationToken: default);
+            foreach(var node in graph.Nodes) 
             {
-                if (firstUpdate)
-                {
-                    isThinking = false;
-                    firstUpdate = false;
-                }
-                
-                agentMsg.Content += update;
-
-                StateHasChanged();
-                await ScrollToBottom();
-                
-                await Task.Yield(); 
+                node.Metadata["SessionId"] = sessionId;
             }
-            
-            Console.WriteLine(agentMsg.Content);
+
+            await WorkflowEngine.ExecuteAsync(graph);
         }
         catch (Exception ex)
         {
@@ -268,26 +272,29 @@
             isThinking = false;
             StateHasChanged();
         }
-        finally
-        {
-            isThinking = false;
-            StateHasChanged();
-            await ScrollToBottom();
-        }
     }
 
     private async Task ScrollToBottom()
     {
         try
         {
-            await JSRuntime.InvokeVoidAsync("eval", "var chat = document.querySelector('.chat-history'); if(chat) chat.scrollTop = chat.scrollHeight;");
+            await JSRuntime.InvokeVoidAsync("chat_scroll_bottom");
         }
         catch { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 
     private class ChatMessage
     {
         public string Content { get; set; } = "";
         public bool IsUser { get; set; }
+        public List<string> TaskUpdates { get; set; } = new();
     }
 }
