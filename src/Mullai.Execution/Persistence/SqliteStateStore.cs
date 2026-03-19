@@ -11,14 +11,16 @@ public class SqliteStateStore : IStateStore
 {
     private readonly string _connectionString;
 
-    public SqliteStateStore(string dbPath = "mullai.db")
+    public SqliteStateStore(string? dbPath = null)
     {
+        dbPath ??= GetDefaultDbPath();
         _connectionString = $"Data Source={dbPath}";
         InitializeDatabase();
     }
 
     private void InitializeDatabase()
     {
+        EnsureDbDirectory();
         using var connection = new SqliteConnection(_connectionString);
         connection.Execute(@"
             CREATE TABLE IF NOT EXISTS Sessions (
@@ -27,6 +29,30 @@ public class SqliteStateStore : IStateStore
                 Checkpoint TEXT,
                 UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             )");
+    }
+
+    private static string GetDefaultDbPath()
+    {
+        var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var configDir = Path.Combine(homeDir, ".mullai");
+        return Path.Combine(configDir, "mullai.db");
+    }
+
+    private void EnsureDbDirectory()
+    {
+        try
+        {
+            var builder = new SqliteConnectionStringBuilder(_connectionString);
+            var dbPath = builder.DataSource;
+            var dir = Path.GetDirectoryName(dbPath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+        }
+        catch
+        {
+        }
     }
 
     public async Task SaveHistoryAsync(string sessionId, List<ChatMessage> history, CancellationToken cancellationToken = default)
