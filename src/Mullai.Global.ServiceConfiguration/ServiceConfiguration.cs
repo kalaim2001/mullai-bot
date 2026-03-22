@@ -19,6 +19,8 @@ using Mullai.Tools.TodoTool;
 using Mullai.Tools.WebTool;
 using Mullai.Tools.WordTool;
 using Mullai.Tools.WorkflowTool;
+using Mullai.Tools.RestApiTool;
+using Mullai.Tools.HtmlToMarkdownTool;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using Mullai.Workflows;
@@ -93,6 +95,8 @@ namespace Mullai.Global.ServiceConfiguration
                 .AddFileSystemTool()
                 .AddWordTool()
                 .AddWorkflowTool()
+                .AddRestApiTool()
+                .AddHtmlToMarkdownTool()
                 .AddUserMemory()
                 .AddMullaiSkills()
                 .AddMullaiWorkflows();

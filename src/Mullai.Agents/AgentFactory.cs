@@ -17,6 +17,8 @@ using Mullai.Tools.CodeSearchTool;
 using Mullai.Tools.TodoTool;
 using Mullai.Tools.WebTool;
 using Mullai.Tools.WorkflowTool;
+using Mullai.Tools.RestApiTool;
+using Mullai.Tools.HtmlToMarkdownTool;
 using Mullai.Workflows.Abstractions;
 
 namespace Mullai.Agents;
@@ -70,6 +72,8 @@ public class AgentFactory
                                 .. _serviceProvider.GetRequiredService<CodeSearchTool>().AsAITools(),
                                 .. _serviceProvider.GetRequiredService<FileSystemTool>().AsAITools(),
                                 .. _serviceProvider.GetRequiredService<WorkflowTool>().AsAITools(),
+                                .. _serviceProvider.GetRequiredService<RestApiTool>().AsAITools(),
+                                .. _serviceProvider.GetRequiredService<HtmlToMarkdownTool>().AsAITools(),
                                 // .. _serviceProvider.GetRequiredService<WordTool>().AsAITools(),
                             ],
                             AllowMultipleToolCalls = true
