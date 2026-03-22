@@ -93,7 +93,6 @@ Mullai is designed for resilience, flexibility, and developer-friendliness:
 *   **Multi-Agent Workflow Engine**: Define complex collaboration patterns (sequential or parallel) with full execution history, state persistence, and webhook support.
 *   **Multi-Provider with Automatic Fallback**: Seamlessly integrates Gemini, Groq, Cerebras, Mistral, OpenRouter, and Ollama. If one provider fails, Mullai automatically fails over to the next available model.
 *   **Unified Web Dashboard**: A premium Blazor-based interface for interactive chat, workflow orchestration, and real-time visualization of agent task graphs.
-*   **`models.json` — Central Model Catalog**: Manage all provider metadata, pricing, and priorities from a single JSON file — enabling instant configuration changes without restarts.
 *   **Rich Tool Ecosystem**: Empower agents with a diverse set of capabilities ranging from system automation to document processing.
 *   **Observability Built-in**: Full OpenTelemetry integration providing deep insights via distributed traces, structured logs, and performance metrics.
 *   **Robust Middleware Pipeline**: Intercept and process messages at any stage with built-in support for tool-calling, PII scrubbing, and safety guardrails.
