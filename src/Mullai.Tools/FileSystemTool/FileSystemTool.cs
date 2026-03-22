@@ -38,6 +38,64 @@ public class FileSystemTool(FileSystemProvider fileSystemProvider)
     }
 
     /// <summary>
+    /// Searches for files matching a glob pattern.
+    /// </summary>
+    [Description("Searches for files matching a glob pattern (e.g., '*.cs', '**/*.txt') starting from a root directory.")]
+    public string GlobSearch(
+        [Description("The root directory to start the search.")] string rootPath,
+        [Description("The glob pattern to match.")] string pattern)
+    {
+        return fileSystemProvider.GlobSearch(rootPath, pattern);
+    }
+
+    /// <summary>
+    /// Searches for text within files in a directory.
+    /// </summary>
+    [Description("Searches for a specific text or regex pattern within all files in a directory and its subdirectories.")]
+    public string GrepSearch(
+        [Description("The directory to search in.")] string directoryPath,
+        [Description("The text or regex pattern to search for.")] string query,
+        [Description("Whether the query is a regular expression.")] bool isRegex = false,
+        [Description("Whether the search should be case-insensitive.")] bool caseInsensitive = true)
+    {
+        return fileSystemProvider.GrepSearch(directoryPath, query, isRegex, caseInsensitive);
+    }
+
+    /// <summary>
+    /// Edits a file by replacing a specific string.
+    /// </summary>
+    [Description("Modifies a file by replacing a target string with new content. This is useful for precise edits without overwriting the whole file.")]
+    public async Task<string> EditFile(
+        [Description("The path to the file to edit.")] string filePath,
+        [Description("The exact text segment to be replaced.")] string targetContent,
+        [Description("The new text to replace the target segment with.")] string replacementContent)
+    {
+        return await fileSystemProvider.EditFileAsync(filePath, targetContent, replacementContent);
+    }
+
+    /// <summary>
+    /// Truncates a file to a specific number of lines.
+    /// </summary>
+    [Description("Reduces a file's size by keeping only the first N lines.")]
+    public async Task<string> TruncateFile(
+        [Description("The path to the file to truncate.")] string filePath,
+        [Description("The maximum number of lines to keep.")] int maxLines)
+    {
+        return await fileSystemProvider.TruncateFileAsync(filePath, maxLines);
+    }
+
+    /// <summary>
+    /// Applies a patch to a file.
+    /// </summary>
+    [Description("Applies a patch or set of changes to a file. Experimental.")]
+    public async Task<string> ApplyPatch(
+        [Description("The path to the file to patch.")] string filePath,
+        [Description("The patch content to apply.")] string patchContent)
+    {
+        return await fileSystemProvider.ApplyPatchAsync(filePath, patchContent);
+    }
+
+    /// <summary>
     /// Returns the functions provided by this plugin.
     /// </summary>
     /// <returns>The functions provided by this plugin.</returns>
@@ -45,5 +103,10 @@ public class FileSystemTool(FileSystemProvider fileSystemProvider)
     {
         yield return AIFunctionFactory.Create(this.ReadFileSystemFile);
         yield return AIFunctionFactory.Create(this.WriteFileSystemFile);
+        yield return AIFunctionFactory.Create(this.GlobSearch);
+        yield return AIFunctionFactory.Create(this.GrepSearch);
+        yield return AIFunctionFactory.Create(this.EditFile);
+        yield return AIFunctionFactory.Create(this.TruncateFile);
+        yield return AIFunctionFactory.Create(this.ApplyPatch);
     }
 }

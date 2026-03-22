@@ -67,10 +67,15 @@ public class FileSystemToolTests : IDisposable
 
         // Assert
         Assert.NotNull(tools);
-        Assert.Equal(2, tools.Count);
+        Assert.Equal(7, tools.Count);
         
         var toolNames = tools.Select(t => t.Name).ToList();
         Assert.Contains("ReadFileSystemFile", toolNames);
         Assert.Contains("WriteFileSystemFile", toolNames);
+        Assert.Contains("GlobSearch", toolNames);
+        Assert.Contains("GrepSearch", toolNames);
+        Assert.Contains("EditFile", toolNames);
+        Assert.Contains("TruncateFile", toolNames);
+        Assert.Contains("ApplyPatch", toolNames);
     }
 }

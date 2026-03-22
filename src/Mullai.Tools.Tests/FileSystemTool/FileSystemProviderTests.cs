@@ -121,4 +121,69 @@ public class FileSystemProviderTests : IDisposable
         // Assert
         Assert.Contains("Error: Directory not found", result);
     }
+
+    [Fact]
+    public void GlobSearch_WithMatchingPattern_ReturnsMatches()
+    {
+        // Arrange
+        var file1 = Path.Combine(_testDirectory, "test1.txt");
+        var file2 = Path.Combine(_testDirectory, "test2.log");
+        File.WriteAllText(file1, "1");
+        File.WriteAllText(file2, "2");
+
+        // Act
+        var result = _provider.GlobSearch(_testDirectory, "*.txt");
+
+        // Assert
+        Assert.Contains("test1.txt", result);
+        Assert.DoesNotContain("test2.log", result);
+    }
+
+    [Fact]
+    public void GrepSearch_WithMatchingContent_ReturnsLines()
+    {
+        // Arrange
+        var filePath = Path.Combine(_testDirectory, "grep.txt");
+        File.WriteAllText(filePath, "line1\nmatch this\nline3");
+
+        // Act
+        var result = _provider.GrepSearch(_testDirectory, "match this");
+
+        // Assert
+        Assert.Contains("grep.txt:2: match this", result);
+    }
+
+    [Fact]
+    public async Task EditFileAsync_WithValidTarget_ReplacesContent()
+    {
+        // Arrange
+        var filePath = Path.Combine(_testDirectory, "edit.txt");
+        await File.WriteAllTextAsync(filePath, "Hello World");
+
+        // Act
+        var result = await _provider.EditFileAsync(filePath, "World", "Mullai");
+
+        // Assert
+        Assert.Contains("Successfully", result);
+        var content = await File.ReadAllTextAsync(filePath);
+        Assert.Equal("Hello Mullai", content);
+    }
+
+    [Fact]
+    public async Task TruncateFileAsync_WithMoreLines_Truncates()
+    {
+        // Arrange
+        var filePath = Path.Combine(_testDirectory, "truncate.txt");
+        await File.WriteAllLinesAsync(filePath, new[] { "1", "2", "3", "4", "5" });
+
+        // Act
+        var result = await _provider.TruncateFileAsync(filePath, 2);
+
+        // Assert
+        Assert.Contains("Successfully", result);
+        var lines = await File.ReadAllLinesAsync(filePath);
+        Assert.Equal(2, lines.Length);
+        Assert.Equal("1", lines[0]);
+        Assert.Equal("2", lines[1]);
+    }
 }

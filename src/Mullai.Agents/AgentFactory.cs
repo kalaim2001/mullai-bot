@@ -12,6 +12,10 @@ using Mullai.Tools.FileSystemTool;
 using Mullai.Tools.WordTool;
 using Mullai.Middleware.Middlewares;
 using Mullai.OpenTelemetry.OpenTelemetry;
+using Mullai.Tools.BashTool;
+using Mullai.Tools.CodeSearchTool;
+using Mullai.Tools.TodoTool;
+using Mullai.Tools.WebTool;
 
 namespace Mullai.Agents;
 
@@ -48,8 +52,12 @@ public class AgentFactory
                             Tools = [
                                 .. _serviceProvider.GetRequiredService<WeatherTool>().AsAITools(),
                                 .. _serviceProvider.GetRequiredService<CliTool>().AsAITools(),
+                                .. _serviceProvider.GetRequiredService<BashTool>().AsAITools(),
+                                .. _serviceProvider.GetRequiredService<TodoTool>().AsAITools(),
+                                .. _serviceProvider.GetRequiredService<WebTool>().AsAITools(),
+                                .. _serviceProvider.GetRequiredService<CodeSearchTool>().AsAITools(),
                                 .. _serviceProvider.GetRequiredService<FileSystemTool>().AsAITools(),
-                                .. _serviceProvider.GetRequiredService<WordTool>().AsAITools(),
+                                // .. _serviceProvider.GetRequiredService<WordTool>().AsAITools(),
                             ],
                             AllowMultipleToolCalls = true
                         },

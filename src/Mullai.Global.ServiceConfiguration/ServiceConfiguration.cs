@@ -11,8 +11,12 @@ using Mullai.OpenTelemetry.OpenTelemetry;
 using Mullai.Providers;
 using Mullai.Abstractions.Configuration;
 using Mullai.Skills;
+using Mullai.Tools.BashTool;
 using Mullai.Tools.CliTool;
+using Mullai.Tools.CodeSearchTool;
 using Mullai.Tools.FileSystemTool;
+using Mullai.Tools.TodoTool;
+using Mullai.Tools.WebTool;
 using Mullai.Tools.WordTool;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
@@ -79,6 +83,10 @@ namespace Mullai.Global.ServiceConfiguration
                 .AddSingleton<FunctionCallingMiddleware>()
                 .AddWeatherTool()
                 .AddCliTool()
+                .AddWebTool()
+                .AddTodoTool()
+                .AddBashTool()
+                .AddCodeSearchTool()
                 .AddFileSystemTool()
                 .AddWordTool()
                 .AddUserMemory()
