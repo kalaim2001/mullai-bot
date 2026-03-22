@@ -6,31 +6,26 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Mullai.Workflows.Services;
 
-public sealed class FileSystemWorkflowRegistry : IWorkflowRegistry
+public sealed class FileSystemWorkflowRegistry : IWorkflowRegistry, IWorkflowRegistryReloader
 {
     private readonly ILogger<FileSystemWorkflowRegistry> _logger;
-    private readonly IReadOnlyList<WorkflowDefinition> _definitions;
-    private readonly Dictionary<string, WorkflowDefinition> _byId;
+    private IReadOnlyList<WorkflowDefinition> _definitions;
+    private Dictionary<string, WorkflowDefinition> _byId;
+    private readonly object _sync = new();
 
     public FileSystemWorkflowRegistry(ILogger<FileSystemWorkflowRegistry> logger)
     {
         _logger = logger;
-        _definitions = LoadDefinitions();
-        _byId = _definitions.ToDictionary(def => def.Id, StringComparer.OrdinalIgnoreCase);
-        if (_definitions.Count == 0)
-        {
-            _logger.LogWarning("No workflow definitions loaded from ~/.mullai/workflows.");
-        }
-        else
-        {
-            _logger.LogInformation(
-                "Loaded {WorkflowCount} workflow definition(s): {WorkflowIds}",
-                _definitions.Count,
-                string.Join(", ", _definitions.Select(d => d.Id)));
-        }
+        Reload();
     }
 
-    public IReadOnlyList<WorkflowDefinition> GetAll() => _definitions;
+    public IReadOnlyList<WorkflowDefinition> GetAll()
+    {
+        lock (_sync)
+        {
+            return _definitions;
+        }
+    }
 
     public WorkflowDefinition? GetById(string workflowId)
     {
@@ -39,7 +34,34 @@ public sealed class FileSystemWorkflowRegistry : IWorkflowRegistry
             return null;
         }
 
-        return _byId.TryGetValue(workflowId.Trim(), out var definition) ? definition : null;
+        lock (_sync)
+        {
+            return _byId.TryGetValue(workflowId.Trim(), out var definition) ? definition : null;
+        }
+    }
+
+    public void Reload()
+    {
+        var definitions = LoadDefinitions();
+        var byId = definitions.ToDictionary(def => def.Id, StringComparer.OrdinalIgnoreCase);
+
+        lock (_sync)
+        {
+            _definitions = definitions;
+            _byId = byId;
+        }
+
+        if (definitions.Count == 0)
+        {
+            _logger.LogWarning("No workflow definitions loaded from ~/.mullai/workflows.");
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Loaded {WorkflowCount} workflow definition(s): {WorkflowIds}",
+                definitions.Count,
+                string.Join(", ", definitions.Select(d => d.Id)));
+        }
     }
 
     private IReadOnlyList<WorkflowDefinition> LoadDefinitions()

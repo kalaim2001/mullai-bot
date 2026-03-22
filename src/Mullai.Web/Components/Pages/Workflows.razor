@@ -13,6 +13,8 @@
 @inject IMullaiTaskStatusStore StatusStore
 @inject IMullaiTaskResponseChannel ResponseChannel
 @inject IOptions<MullaiTaskRuntimeOptions> RuntimeOptions
+@inject HttpClient Http
+@inject NavigationManager Nav
 
 <PageTitle>Workflows</PageTitle>
 
@@ -74,6 +76,40 @@
                             <div class="workflow-placeholder">No output yet.</div>
                         }
                     </div>
+
+                    @if (card.WebhookTriggers.Count > 0)
+                    {
+                        <div class="workflow-history">
+                            <div class="workflow-history-title">Webhook Triggers</div>
+                            <ul class="workflow-history-list">
+                                @foreach (var trigger in card.WebhookTriggers)
+                                {
+                                    <li class="workflow-history-item workflow-trigger-item">
+                                        <div class="workflow-trigger-info">
+                                            <strong>@trigger.DisplayName</strong>
+                                            <span class="workflow-trigger-id">@trigger.TriggerId</span>
+                                        </div>
+                                        <textarea class="workflow-trigger-payload"
+                                                  rows="2"
+                                                  placeholder="{ \"message\": \"hello\" }"
+                                                  @bind="trigger.Payload"></textarea>
+                                        <input class="workflow-trigger-secret"
+                                               placeholder="x-mullai-secret (optional)"
+                                               @bind="trigger.Secret" />
+                                        <button class="workflow-run"
+                                                @onclick="() => SendWebhookAsync(card, trigger)"
+                                                disabled="@trigger.IsSending">
+                                            @(trigger.IsSending ? "Sending..." : "Send Webhook")
+                                        </button>
+                                        @if (!string.IsNullOrWhiteSpace(trigger.Status))
+                                        {
+                                            <span class="workflow-status">@trigger.Status</span>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
 
                     <div class="workflow-history">
                         <div class="workflow-history-title">Recent Runs</div>
@@ -185,6 +221,50 @@
         }
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SendWebhookAsync(WorkflowCardState card, WebhookTriggerState trigger)
+    {
+        if (trigger.IsSending)
+        {
+            return;
+        }
+
+        trigger.IsSending = true;
+        trigger.Status = string.Empty;
+
+        var payload = string.IsNullOrWhiteSpace(trigger.Payload) ? "{}" : trigger.Payload.Trim();
+        if (!payload.StartsWith("{", StringComparison.Ordinal))
+        {
+            payload = $"\"{payload.Replace("\"", "\\\"", StringComparison.Ordinal)}\"";
+        }
+
+        try
+        {
+            var baseUri = Http.BaseAddress ?? new Uri(Nav.BaseUri);
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
+                new Uri(baseUri, $"api/mullai/workflows/{card.Definition.Id}/triggers/{trigger.TriggerId}"));
+            request.Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
+            if (!string.IsNullOrWhiteSpace(trigger.Secret))
+            {
+                request.Headers.TryAddWithoutValidation("x-mullai-secret", trigger.Secret);
+            }
+
+            using var response = await Http.SendAsync(request);
+            trigger.Status = response.IsSuccessStatusCode
+                ? "Sent"
+                : $"Failed: {(int)response.StatusCode}";
+        }
+        catch (Exception ex)
+        {
+            trigger.Status = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            trigger.IsSending = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task PollRuntimeAsync(CancellationToken cancellationToken)
@@ -382,6 +462,14 @@
         public WorkflowCardState(WorkflowDefinition definition)
         {
             Definition = definition;
+            WebhookTriggers = definition.Triggers
+                .Where(t => t.Enabled && t.Type.Equals("webhook", StringComparison.OrdinalIgnoreCase))
+                .Select(t => new WebhookTriggerState
+                {
+                    TriggerId = string.IsNullOrWhiteSpace(t.Id) ? t.Name : t.Id,
+                    DisplayName = string.IsNullOrWhiteSpace(t.Name) ? t.Id : t.Name
+                })
+                .ToList();
         }
 
         public WorkflowDefinition Definition { get; }
@@ -394,6 +482,17 @@
         public string? SessionKey { get; set; }
         public List<WorkflowRunEntry> RecentRuns { get; set; } = [];
         public string RecentRunsSignature { get; set; } = string.Empty;
+        public List<WebhookTriggerState> WebhookTriggers { get; set; }
+    }
+
+    private sealed class WebhookTriggerState
+    {
+        public string TriggerId { get; init; } = string.Empty;
+        public string DisplayName { get; init; } = string.Empty;
+        public string Payload { get; set; } = string.Empty;
+        public string Secret { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public bool IsSending { get; set; }
     }
 
     private sealed class WorkflowRunEntry

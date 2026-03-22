@@ -189,6 +189,40 @@
     background: var(--workflow-surface-muted, #f7f7f7);
 }
 
+.workflow-trigger-item {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+}
+
+.workflow-trigger-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.workflow-trigger-id {
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    color: var(--text-muted, #6f6f6f);
+}
+
+.workflow-trigger-payload {
+    width: 100%;
+    border-radius: 0.6rem;
+    border: 1px solid var(--workflow-border, #e3e3e3);
+    padding: 0.5rem;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-size: 0.85rem;
+}
+
+.workflow-trigger-secret {
+    width: 100%;
+    border-radius: 0.6rem;
+    border: 1px solid var(--workflow-border, #e3e3e3);
+    padding: 0.45rem 0.6rem;
+    font-size: 0.85rem;
+}
+
 .workflow-history-state {
     font-weight: 700;
     color: var(--workflow-accent, #0f766e);

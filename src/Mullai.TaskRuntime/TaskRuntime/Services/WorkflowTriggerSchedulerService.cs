@@ -30,135 +30,134 @@ public sealed class WorkflowTriggerSchedulerService : BackgroundService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var runners = new List<Task>();
+        var schedules = new Dictionary<string, TriggerSchedule>(StringComparer.OrdinalIgnoreCase);
+        var timeZone = TimeZoneInfo.Local;
+        var pollInterval = TimeSpan.FromSeconds(1);
 
-        foreach (var workflow in _registry.GetAll())
+        while (!stoppingToken.IsCancellationRequested)
         {
-            foreach (var trigger in workflow.Triggers.Where(t => t.Enabled))
+            try
             {
-                if (trigger.Type.Equals("cron", StringComparison.OrdinalIgnoreCase))
+                var workflows = _registry.GetAll();
+                var now = DateTimeOffset.Now;
+
+                var activeKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var workflow in workflows)
                 {
-                    _logger.LogInformation(
-                        "Starting cron trigger {TriggerName} for workflow {WorkflowId} with cron {Cron}.",
-                        string.IsNullOrWhiteSpace(trigger.Name) ? trigger.Id : trigger.Name,
-                        workflow.Id,
-                        trigger.Cron);
-                    runners.Add(RunCronTriggerAsync(workflow, trigger, stoppingToken));
+                    foreach (var trigger in workflow.Triggers.Where(t => t.Enabled))
+                    {
+                        var key = $"{workflow.Id}:{trigger.Id}";
+                        activeKeys.Add(key);
+
+                        if (!schedules.TryGetValue(key, out var schedule))
+                        {
+                            schedule = CreateSchedule(workflow, trigger, timeZone);
+                            if (schedule is null)
+                            {
+                                continue;
+                            }
+
+                            schedules[key] = schedule;
+                        }
+
+                        if (schedule.NextRunUtc is not null && schedule.NextRunUtc <= now)
+                        {
+                            await EnqueueWorkflowAsync(workflow, trigger, stoppingToken).ConfigureAwait(false);
+                            schedule.NextRunUtc = ComputeNextRun(schedule, now, timeZone);
+                        }
+                    }
                 }
-                else if (trigger.Type.Equals("interval", StringComparison.OrdinalIgnoreCase))
+
+                foreach (var stale in schedules.Keys.Where(k => !activeKeys.Contains(k)).ToList())
                 {
-                    _logger.LogInformation(
-                        "Starting interval trigger {TriggerName} for workflow {WorkflowId} every {IntervalSeconds}s.",
-                        string.IsNullOrWhiteSpace(trigger.Name) ? trigger.Id : trigger.Name,
-                        workflow.Id,
-                        trigger.IntervalSeconds);
-                    runners.Add(RunIntervalTriggerAsync(workflow, trigger, stoppingToken));
+                    schedules.Remove(stale);
                 }
-                else
-                {
-                    _logger.LogInformation(
-                        "Skipping unsupported workflow trigger type {TriggerType} for workflow {WorkflowId}.",
-                        trigger.Type,
-                        workflow.Id);
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Workflow trigger scheduler loop failed.");
+            }
+
+            try
+            {
+                await Task.Delay(pollInterval, stoppingToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
+            }
+        }
+    }
+
+    private TriggerSchedule? CreateSchedule(WorkflowDefinition workflow, WorkflowTriggerDefinition trigger, TimeZoneInfo timeZone)
+    {
+        if (trigger.Type.Equals("cron", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(trigger.Cron))
+            {
+                _logger.LogWarning("Cron trigger on workflow {WorkflowId} is missing cron expression.", workflow.Id);
+                return null;
+            }
+
+            try
+            {
+                var format = trigger.Cron.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Length == 6
+                    ? CronFormat.IncludeSeconds
+                    : CronFormat.Standard;
+                var expression = CronExpression.Parse(trigger.Cron, format);
+                var next = expression.GetNextOccurrence(DateTimeOffset.Now, timeZone);
+                _logger.LogInformation(
+                    "Registered cron trigger {TriggerId} for workflow {WorkflowId} with cron {Cron}.",
+                    trigger.Id,
+                    workflow.Id,
+                    trigger.Cron);
+                return new TriggerSchedule(trigger.Type, expression, trigger.IntervalSeconds, next);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Invalid cron expression '{Cron}' for workflow {WorkflowId}.", trigger.Cron, workflow.Id);
+                return null;
             }
         }
 
-        if (runners.Count == 0)
+        if (trigger.Type.Equals("interval", StringComparison.OrdinalIgnoreCase))
         {
-            return Task.CompletedTask;
-        }
-
-        return Task.WhenAll(runners);
-    }
-
-    private async Task RunCronTriggerAsync(
-        WorkflowDefinition workflow,
-        WorkflowTriggerDefinition trigger,
-        CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(trigger.Cron))
-        {
-            _logger.LogWarning("Cron trigger on workflow {WorkflowId} is missing cron expression.", workflow.Id);
-            return;
-        }
-
-        CronExpression expression;
-        try
-        {
-            var format = trigger.Cron.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Length == 6
-                ? CronFormat.IncludeSeconds
-                : CronFormat.Standard;
-            expression = CronExpression.Parse(trigger.Cron, format);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Invalid cron expression '{Cron}' for workflow {WorkflowId}.", trigger.Cron, workflow.Id);
-            return;
-        }
-
-        var timeZone = TimeZoneInfo.Local;
-
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            var nextUtc = expression.GetNextOccurrence(DateTimeOffset.Now, timeZone);
-            if (nextUtc is null)
+            if (trigger.IntervalSeconds is null || trigger.IntervalSeconds <= 0)
             {
-                return;
+                _logger.LogWarning("Interval trigger on workflow {WorkflowId} is missing intervalSeconds.", workflow.Id);
+                return null;
             }
 
             _logger.LogInformation(
-                "Cron trigger {TriggerId} for workflow {WorkflowId} scheduled at {NextRun}.",
+                "Registered interval trigger {TriggerId} for workflow {WorkflowId} every {IntervalSeconds}s.",
                 trigger.Id,
                 workflow.Id,
-                nextUtc.Value);
-
-            var delay = nextUtc.Value - DateTimeOffset.Now;
-            if (delay > TimeSpan.Zero)
-            {
-                try
-                {
-                    await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
-            }
-
-            await EnqueueWorkflowAsync(workflow, trigger, cancellationToken).ConfigureAwait(false);
+                trigger.IntervalSeconds);
+            return new TriggerSchedule(trigger.Type, null, trigger.IntervalSeconds, DateTimeOffset.Now.AddSeconds(trigger.IntervalSeconds.Value));
         }
+
+        _logger.LogInformation(
+            "Skipping unsupported workflow trigger type {TriggerType} for workflow {WorkflowId}.",
+            trigger.Type,
+            workflow.Id);
+        return null;
     }
 
-    private async Task RunIntervalTriggerAsync(
-        WorkflowDefinition workflow,
-        WorkflowTriggerDefinition trigger,
-        CancellationToken cancellationToken)
+    private static DateTimeOffset? ComputeNextRun(TriggerSchedule schedule, DateTimeOffset now, TimeZoneInfo timeZone)
     {
-        if (trigger.IntervalSeconds is null || trigger.IntervalSeconds <= 0)
+        if (schedule.Type.Equals("cron", StringComparison.OrdinalIgnoreCase) && schedule.CronExpression is not null)
         {
-            _logger.LogWarning("Interval trigger on workflow {WorkflowId} is missing intervalSeconds.", workflow.Id);
-            return;
+            return schedule.CronExpression.GetNextOccurrence(now, timeZone);
         }
 
-        var timer = new PeriodicTimer(TimeSpan.FromSeconds(trigger.IntervalSeconds.Value));
-        try
+        if (schedule.Type.Equals("interval", StringComparison.OrdinalIgnoreCase) && schedule.IntervalSeconds is not null)
         {
-            while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
-            {
-                await EnqueueWorkflowAsync(workflow, trigger, cancellationToken).ConfigureAwait(false);
-            }
+            return now.AddSeconds(schedule.IntervalSeconds.Value);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            // Normal shutdown.
-        }
-        finally
-        {
-            timer.Dispose();
-        }
+
+        return null;
     }
 
     private async Task EnqueueWorkflowAsync(
@@ -201,5 +200,21 @@ public sealed class WorkflowTriggerSchedulerService : BackgroundService
             workflow.Id,
             trigger.Id,
             trigger.Type);
+    }
+
+    private sealed class TriggerSchedule
+    {
+        public TriggerSchedule(string type, CronExpression? cronExpression, int? intervalSeconds, DateTimeOffset? nextRunUtc)
+        {
+            Type = type;
+            CronExpression = cronExpression;
+            IntervalSeconds = intervalSeconds;
+            NextRunUtc = nextRunUtc;
+        }
+
+        public string Type { get; }
+        public CronExpression? CronExpression { get; }
+        public int? IntervalSeconds { get; }
+        public DateTimeOffset? NextRunUtc { get; set; }
     }
 }

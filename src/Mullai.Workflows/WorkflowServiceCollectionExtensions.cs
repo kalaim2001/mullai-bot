@@ -8,7 +8,9 @@ public static class WorkflowServiceCollectionExtensions
 {
     public static IServiceCollection AddMullaiWorkflows(this IServiceCollection services)
     {
-        services.AddSingleton<IWorkflowRegistry, FileSystemWorkflowRegistry>();
+        services.AddSingleton<FileSystemWorkflowRegistry>();
+        services.AddSingleton<IWorkflowRegistry>(sp => sp.GetRequiredService<FileSystemWorkflowRegistry>());
+        services.AddSingleton<IWorkflowRegistryReloader>(sp => sp.GetRequiredService<FileSystemWorkflowRegistry>());
         services.AddSingleton<IWorkflowFactory, WorkflowFactory>();
         services.AddSingleton<IWorkflowAgentFactory, WorkflowAgentFactory>();
         services.AddSingleton<IWorkflowOutputDispatcher, WorkflowOutputDispatcher>();

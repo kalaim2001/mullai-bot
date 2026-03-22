@@ -30,6 +30,9 @@ public static class MullaiTaskEndpoints
         workflowGroup.MapGet("/{workflowId}", GetWorkflowAsync);
         workflowGroup.MapPost("/{workflowId}/run", RunWorkflowAsync);
         workflowGroup.MapPost("/{workflowId}/triggers/{triggerId}", RunWorkflowTriggerAsync);
+        workflowGroup.MapGet("/runs", GetWorkflowRunsAsync);
+        workflowGroup.MapGet("/outputs/deadletter", GetOutputDeadLetterAsync);
+        workflowGroup.MapPost("/outputs/deadletter/{failureId}/replay", ReplayOutputDeadLetterAsync);
 
         return endpoints;
     }
@@ -215,5 +218,87 @@ public static class MullaiTaskEndpoints
         await statusStore.MarkQueuedAsync(workItem, cancellationToken).ConfigureAwait(false);
 
         return Results.Accepted($"/api/mullai/tasks/{workItem.TaskId}", new { workItem.TaskId, workItem.SessionKey });
+    }
+
+    private static async Task<IResult> GetWorkflowRunsAsync(
+        IMullaiTaskStatusStore statusStore,
+        string? workflowId = null,
+        string? state = null,
+        int take = 50,
+        CancellationToken cancellationToken = default)
+    {
+        var recent = await statusStore.GetRecentAsync(Math.Max(1, take), cancellationToken).ConfigureAwait(false);
+        var filtered = recent.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(workflowId))
+        {
+            filtered = filtered.Where(snapshot =>
+                string.Equals(snapshot.WorkflowId, workflowId.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(state))
+        {
+            filtered = filtered.Where(snapshot =>
+                string.Equals(snapshot.State.ToString(), state.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        return Results.Ok(filtered);
+    }
+
+    private static async Task<IResult> GetOutputDeadLetterAsync(
+        IWorkflowOutputFailureStore failureStore,
+        int take = 50,
+        CancellationToken cancellationToken = default)
+    {
+        var results = await failureStore.GetRecentAsync(Math.Max(1, take), cancellationToken).ConfigureAwait(false);
+        return Results.Ok(results);
+    }
+
+    private static async Task<IResult> ReplayOutputDeadLetterAsync(
+        string failureId,
+        IWorkflowOutputFailureStore failureStore,
+        IEnumerable<IWorkflowOutputHandler> handlers,
+        IWorkflowRegistry registry,
+        CancellationToken cancellationToken)
+    {
+        var failure = await failureStore.GetAsync(failureId, cancellationToken).ConfigureAwait(false);
+        if (failure is null)
+        {
+            return Results.NotFound();
+        }
+
+        var definition = registry.GetById(failure.WorkflowId);
+        if (definition is null)
+        {
+            return Results.NotFound($"Workflow '{failure.WorkflowId}' was not found.");
+        }
+
+        var handler = handlers.FirstOrDefault(h =>
+            string.Equals(h.Type, failure.OutputType, StringComparison.OrdinalIgnoreCase));
+        if (handler is null)
+        {
+            return Results.NotFound($"No output handler for '{failure.OutputType}'.");
+        }
+
+        var output = new WorkflowOutputDefinition
+        {
+            Type = failure.OutputType,
+            Target = failure.OutputTarget,
+            Properties = new Dictionary<string, string>(failure.OutputProperties)
+        };
+
+        var context = new WorkflowOutputContext
+        {
+            Definition = definition,
+            Response = failure.Response,
+            TaskId = failure.TaskId,
+            SessionKey = failure.SessionKey,
+            Metadata = failure.Metadata
+        };
+
+        await handler.HandleAsync(context, output, cancellationToken).ConfigureAwait(false);
+        await failureStore.RemoveAsync(failure.Id, cancellationToken).ConfigureAwait(false);
+
+        return Results.Ok();
     }
 }
