@@ -6,6 +6,9 @@ using Mullai.Abstractions.Configuration;
 using Mullai.Global.ServiceConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://0.0.0.0:7755");
+builder.Host.UseWindowsService();
+builder.Host.UseSystemd();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

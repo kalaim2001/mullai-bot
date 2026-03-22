@@ -60,24 +60,100 @@ else
 fi
 
 # Construct Download URL
-# Pattern: Mullai_v0.0.1-preview_linux_arm64
-DOWNLOAD_URL="https://github.com/agentmatters/mullai-bot/releases/download/${VERSION}/Mullai_${VERSION}${VERSION_SUFFIX}_${OS}_${ARCH}"
+# Pattern: Mullai_v0.0.1-preview_linux_arm64.zip
+DOWNLOAD_URL="https://github.com/agentmatters/mullai-bot/releases/download/${VERSION}/Mullai_${VERSION}${VERSION_SUFFIX}_${OS}_${ARCH}.zip"
 
 echo "Installing Mullai ${VERSION} for ${OS}-${ARCH}..."
 
 # Create directories
 mkdir -p "$BIN_DIR"
+mkdir -p "$INSTALL_DIR/temp"
 
-# Download binary
+# Download and extract
 echo "Downloading Mullai from ${DOWNLOAD_URL}..."
-if curl -L --progress-bar "$DOWNLOAD_URL" -o "$BIN_DIR/$BINARY_NAME"; then
+TEMP_ZIP="$INSTALL_DIR/temp/mullai.zip"
+EXTRACT_DIR="$INSTALL_DIR/temp/extracted"
+
+if curl -L --progress-bar "$DOWNLOAD_URL" -o "$TEMP_ZIP"; then
+    echo "Extracting Mullai..."
+    rm -rf "$EXTRACT_DIR"
+    mkdir -p "$EXTRACT_DIR"
+    unzip -q -o "$TEMP_ZIP" -d "$EXTRACT_DIR"
+    
+    # Install CLI
+    mv "$EXTRACT_DIR/cli/Mullai" "$BIN_DIR/$BINARY_NAME"
     chmod +x "$BIN_DIR/$BINARY_NAME"
+    
+    # Install Web App
+    echo "Installing Mullai Web App..."
+    rm -rf "$INSTALL_DIR/web"
+    mv "$EXTRACT_DIR/web" "$INSTALL_DIR/web"
+    chmod +x "$INSTALL_DIR/web/Mullai.Web"
+    
+    # Cleanup temp
+    rm -rf "$INSTALL_DIR/temp"
 else
     echo "Failed to download Mullai. Please check your internet connection and the release URL."
     exit 1
 fi
 
-echo "Mullai has been installed to $BIN_DIR/$BINARY_NAME"
+echo "Mullai CLI has been installed to $BIN_DIR/$BINARY_NAME"
+
+# Service Installation
+if [ "$OS" == "linux" ]; then
+    if command -v systemctl >/dev/null 2>&1; then
+        echo "Setting up Mullai Web as a systemd service..."
+        SERVICE_FILE="/etc/systemd/system/mullai-web.service"
+        sudo tee $SERVICE_FILE > /dev/null <<EOF
+[Unit]
+Description=Mullai Web Service
+After=network.target
+
+[Service]
+ExecStart=$INSTALL_DIR/web/Mullai.Web
+WorkingDirectory=$INSTALL_DIR/web
+Restart=always
+User=$USER
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        sudo systemctl daemon-reload
+        sudo systemctl enable mullai-web
+        sudo systemctl restart mullai-web
+        echo "Mullai Web service installed and started."
+    fi
+elif [ "$OS" == "macos" ]; then
+    echo "Setting up Mullai Web as a launchd agent..."
+    PLIST_DIR="$HOME/Library/LaunchAgents"
+    PLIST_FILE="$PLIST_DIR/com.mullai.bot.web.plist"
+    mkdir -p "$PLIST_DIR"
+    cat > "$PLIST_FILE" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.mullai.bot.web</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$INSTALL_DIR/web/Mullai.Web</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>$INSTALL_DIR/web/out.log</string>
+    <key>StandardErrorPath</key>
+    <string>$INSTALL_DIR/web/err.log</string>
+</dict>
+</plist>
+EOF
+    launchctl unload "$PLIST_FILE" 2>/dev/null || true
+    launchctl load "$PLIST_FILE"
+    echo "Mullai Web agent installed and started."
+fi
 
 # Path persistence
 SHELL_RC=""

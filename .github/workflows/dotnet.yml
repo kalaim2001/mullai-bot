@@ -63,7 +63,7 @@ jobs:
         fi
 
     - name: Restore dependencies
-      run: dotnet restore src/Mullai.CLI/Mullai.CLI.csproj
+      run: dotnet restore src/Mullai.slnx
 
     - name: Publish
       shell: bash
@@ -75,22 +75,31 @@ jobs:
           -p:PublishSingleFile=true \
           -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:VersionSuffix=preview \
-          -o publish
+          -o publish/cli
 
-    - name: Rename and Prepare
+        dotnet publish src/Mullai.Web/Mullai.Web.csproj \
+          -c Release \
+          -r ${{ matrix.rid }} \
+          --self-contained true \
+          -p:PublishSingleFile=true \
+          -p:IncludeNativeLibrariesForSelfExtract=true \
+          -p:VersionSuffix=preview \
+          -o publish/web
+
+    - name: Package and Prepare
       shell: bash
       run: |
         VERSION=${{ steps.get_version.outputs.VERSION }}
         OS=${{ matrix.os }}
         ARCH=${{ matrix.arch }}
-        SUFFIX=${{ matrix.suffix }}
-        mv publish/Mullai${SUFFIX} Mullai_${VERSION}_${OS}_${ARCH}${SUFFIX}
+        ZIP_NAME=Mullai_${VERSION}_${OS}_${ARCH}.zip
+        cd publish && zip -r ../$ZIP_NAME .
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Mullai_${{ steps.get_version.outputs.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}
-        path: Mullai_${{ steps.get_version.outputs.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.suffix }}
+        path: Mullai_${{ steps.get_version.outputs.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}.zip
 
   release:
     if: startsWith(github.ref, 'refs/tags/')

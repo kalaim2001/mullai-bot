@@ -65,8 +65,8 @@ if ($ARCH_NAME -eq "arm64") {
 }
 
 # Construct Download URL
-# Pattern: Mullai_v0.0.1-preview_win_arm64.exe
-$DOWNLOAD_URL = "https://github.com/agentmatters/mullai-bot/releases/download/$VERSION/Mullai_${VERSION}${VERSION_SUFFIX}_${OS}_${ARCH}.exe"
+# Pattern: Mullai_v0.0.1-preview_win_arm64.zip
+$DOWNLOAD_URL = "https://github.com/agentmatters/mullai-bot/releases/download/$VERSION/Mullai_${VERSION}${VERSION_SUFFIX}_${OS}_${ARCH}.zip"
 
 Write-Host "Installing Mullai $VERSION for $OS-$ARCH..." -ForegroundColor Cyan
 
@@ -74,17 +74,64 @@ Write-Host "Installing Mullai $VERSION for $OS-$ARCH..." -ForegroundColor Cyan
 if (-not (Test-Path $BIN_DIR)) {
     New-Item -ItemType Directory -Path $BIN_DIR -Force | Out-Null
 }
+$TEMP_DIR = Join-Path $INSTALL_DIR "temp"
+if (-not (Test-Path $TEMP_DIR)) {
+    New-Item -ItemType Directory -Path $TEMP_DIR -Force | Out-Null
+}
 
-# Download binary
+# Download and extract
 Write-Host "Downloading Mullai from $DOWNLOAD_URL..." -ForegroundColor Gray
+$TEMP_ZIP = Join-Path $TEMP_DIR "mullai.zip"
+$EXTRACT_DIR = Join-Path $TEMP_DIR "extracted"
+
 try {
-    Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile (Join-Path $BIN_DIR $BINARY_NAME) -UseBasicParsing
+    Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TEMP_ZIP -UseBasicParsing
+    Write-Host "Extracting Mullai..." -ForegroundColor Gray
+    if (Test-Path $EXTRACT_DIR) { Remove-Item $EXTRACT_DIR -Recurse -Force }
+    Expand-Archive -Path $TEMP_ZIP -DestinationPath $EXTRACT_DIR -Force
+    
+    # Install CLI
+    $CLI_SRC = Join-Path $EXTRACT_DIR "cli\Mullai.exe"
+    Move-Item -Path $CLI_SRC -Destination (Join-Path $BIN_DIR $BINARY_NAME) -Force
+    
+    # Install Web App
+    Write-Host "Installing Mullai Web App..." -ForegroundColor Gray
+    $WEB_DIR = Join-Path $INSTALL_DIR "web"
+    if (Test-Path $WEB_DIR) { 
+        # Stop service if running to allow file overwrite
+        $SERVICE_NAME = "MullaiWeb"
+        if (Get-Service -Name $SERVICE_NAME -ErrorAction SilentlyContinue) {
+            Stop-Service -Name $SERVICE_NAME -ErrorAction SilentlyContinue
+        }
+        Remove-Item $WEB_DIR -Recurse -Force 
+    }
+    Move-Item -Path (Join-Path $EXTRACT_DIR "web") -Destination $WEB_DIR -Force
+    
+    # Cleanup
+    Remove-Item $TEMP_DIR -Recurse -Force
 } catch {
-    Write-Host "Failed to download Mullai. Please check your internet connection and the release URL." -ForegroundColor Red
+    Write-Host "Failed to download or install Mullai. Error: $_" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "Mullai has been installed to $(Join-Path $BIN_DIR $BINARY_NAME)" -ForegroundColor Green
+Write-Host "Mullai CLI has been installed to $(Join-Path $BIN_DIR $BINARY_NAME)" -ForegroundColor Green
+
+# Service Installation
+Write-Host "Setting up Mullai Web as a Windows service..." -ForegroundColor Cyan
+$SERVICE_NAME = "MullaiWeb"
+$EXE_PATH = Join-Path $INSTALL_DIR "web\Mullai.Web.exe"
+
+try {
+    if (Get-Service -Name $SERVICE_NAME -ErrorAction SilentlyContinue) {
+        # Already handled stop/remove above during file move
+    } else {
+        New-Service -Name $SERVICE_NAME -BinaryPathName $EXE_PATH -Description "Mullai Web Service" -StartupType Automatic
+    }
+    Start-Service -Name $SERVICE_NAME
+    Write-Host "Mullai Web service installed and started." -ForegroundColor Green
+} catch {
+    Write-Host "Warning: Could not setup Windows service. You may need to run this script as Administrator. Error: $_" -ForegroundColor Yellow
+}
 
 # Path persistence
 $CURRENT_PATH = [Environment]::GetEnvironmentVariable("Path", "User")
