@@ -11,13 +11,18 @@
     <div class="app-overlay" @onclick="CloseSidebar" aria-hidden="true"></div>
 
     <main class="app-main">
-        <TopNav Title="@_headerTitle"
-                Subtitle="@_headerSubtitle"
-                SessionId="@_sessionLabel"
-                Status="Active"
-                OnToggleSidebar="ToggleSidebar" />
+        @if (!_isSettingsPage)
+        {
+            <TopNav Title="@_headerTitle"
+                    Subtitle="@_headerSubtitle"
+                    SessionId="@_sessionLabel"
+                    Status="Active"
+                    OnToggleSidebar="ToggleSidebar" />
+        }
         <section class="app-content">
-            @Body
+            <CascadingValue Value="this" IsFixed="true">
+                @Body
+            </CascadingValue>
         </section>
     </main>
 </div>
@@ -47,10 +52,14 @@
         StateHasChanged();
     }
 
+    private bool _isSettingsPage;
+    
     private void UpdateHeaderForLocation()
     {
         var relative = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         relative = relative.Split('?', '#')[0];
+
+        _isSettingsPage = string.Equals(relative, "settings", StringComparison.OrdinalIgnoreCase);
 
         (_headerTitle, _headerSubtitle) = relative switch
         {
@@ -61,7 +70,7 @@
         };
     }
 
-    private void ToggleSidebar()
+    public void ToggleSidebar()
         => _sidebarOpen = !_sidebarOpen;
 
     private void CloseSidebar()

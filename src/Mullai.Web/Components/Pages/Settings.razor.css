@@ -1,43 +1,81 @@
-/* Cards / settings */
-.card {
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
+.settings {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    height: 100%;
+    overflow-y: auto;
+    animation: fadeIn 0.4s ease-out;
 }
 
-.card-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1.15rem 1.15rem 0.9rem;
-    border-bottom: 1px solid var(--border);
-    background: rgba(242, 244, 248, 0.55);
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.card-title {
-    font-weight: 800;
+.settings-header {
+    margin-bottom: 1.5rem;
+}
+
+.mobile-menu-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
     color: var(--text);
-    margin-bottom: 0.2rem;
+    padding: 0;
+    cursor: pointer;
 }
 
-.card-subtitle {
-    font-size: 0.9rem;
+@media (max-width: 960px) {
+    .mobile-menu-btn {
+        display: flex;
+    }
+}
+
+.settings-header h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+}
+
+.settings-header p {
+    font-size: 0.95rem;
     color: var(--muted);
 }
 
+/* Cards */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.card-head {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: var(--muted);
+    margin-top: 0.125rem;
+}
+
 .card-body {
-    padding: 1.15rem;
-}
-
-.card-compact .card-head {
-    padding: 0.9rem 0.95rem 0.75rem;
-}
-
-.card-compact .card-body {
-    padding: 0.95rem;
+    padding: 1.5rem;
 }
 
 /* Credentials Bar */
@@ -45,22 +83,29 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: white;
-    padding: 0.85rem 1.15rem;
+    background: var(--surface-2);
+    padding: 1rem 1.5rem;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     margin-bottom: 1.5rem;
+    transition: all 0.2s;
+}
+
+.credentials-bar:hover {
+    border-color: var(--accent-border);
+    box-shadow: var(--shadow-sm);
 }
 
 .credentials-bar-main {
     display: flex;
-    align-items: center;
-    gap: 1.25rem;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .credentials-bar-title {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.95rem;
+    color: var(--text);
 }
 
 .credentials-bar-status {
@@ -71,29 +116,23 @@
 
 .credentials-bar-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
-/* Key Editor & Confirmations */
+/* Key Editor */
 .key-editor {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--accent-border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
     margin-bottom: 1.5rem;
-    animation: slideDown 0.25s ease-out;
+    box-shadow: var(--ring);
+    animation: slideDown 0.3s ease-out;
 }
 
 @keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .key-editor-header {
@@ -101,141 +140,127 @@
 }
 
 .key-editor-title {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: 'Outfit', sans-serif;
+    margin-bottom: 0.125rem;
 }
 
 .key-editor-form {
     display: flex;
     gap: 1rem;
-    align-items: flex-start;
+    align-items: center;
 }
 
 .key-editor-form .input {
     flex: 1;
 }
 
-.key-confirm-title {
-    font-weight: 850;
-    margin-bottom: 0.4rem;
-    color: var(--text);
-}
-
 /* Split Layout */
 .settings-split {
     display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 1.25rem;
+    grid-template-columns: 340px 1fr;
+    gap: 1.5rem;
     align-items: flex-start;
-    /* Don't stretch if we use fixed height, or use stretch if we want min-height */
 }
 
 .panel {
     display: flex;
     flex-direction: column;
-    min-width: 0;
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.65);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    height: 530px;
-    /* Fixed height for symmetry */
+    height: 600px; /* Reduced height back to 600 */
+    box-shadow: var(--shadow-sm);
 }
 
 .panel-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 0.9rem 0.95rem;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border);
-    background: rgba(242, 244, 248, 0.55);
+    background: var(--surface-2);
 }
 
 .panel-title {
-    font-weight: 850;
+    font-weight: 700;
     color: var(--text);
 }
 
-.panel-sub {
-    font-size: 0.86rem;
-    color: var(--subtle);
-}
-
-.panel-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
 .panel-toolbar {
-    display: flex;
-    gap: 0.6rem;
-    align-items: center;
-    padding: 0.85rem 0.95rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface-2);
     border-bottom: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.55);
+    display: flex;
+    gap: 0.50rem;
 }
 
-/* Lists and Tables */
+.panel-toolbar .input {
+    flex: 1;
+}
+
+.panel-empty {
+    padding: 2rem;
+    text-align: center;
+}
+
+/* Provider List */
 .list {
     flex: 1;
-    overflow: auto;
+    overflow-y: auto;
     padding: 0.5rem;
 }
 
 .list-item {
-    width: 100%;
-    text-align: left;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.8rem;
-    padding: 0.75rem 0.8rem;
-    border-radius: 16px;
-    border: 1px solid transparent;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: var(--radius-md);
     background: transparent;
+    text-align: left;
     cursor: pointer;
-    color: var(--text);
-    margin-bottom: 2px;
+    transition: background 160ms;
+    margin-bottom: 0.25rem;
 }
 
 .list-item:hover {
-    background: rgba(242, 244, 248, 0.75);
-    border-color: rgba(208, 215, 226, 0.65);
+    background: var(--surface-2);
 }
 
 .list-item.selected {
-    background: var(--accent-soft);
-    border-color: var(--accent-border);
+    background: var(--accent-light);
+    border: 1px solid var(--accent-border);
+}
+
+.list-item-main {
+    flex: 1;
+    min-width: 0;
 }
 
 .list-item-title {
-    font-weight: 850;
-    margin-bottom: 0.15rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text);
 }
 
 .list-item-sub {
-    font-size: 0.86rem;
+    font-size: 0.8125rem;
     color: var(--subtle);
-}
-
-.provider-details {
     display: flex;
-    flex-direction: column;
-    height: 100%;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.125rem;
 }
 
-.detail-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-}
-
+/* Model Table */
 .models-scroll {
     flex: 1;
-    overflow: auto;
-    padding: 0;
+    overflow-y: auto;
 }
 
 .models-scroll table {
@@ -246,94 +271,82 @@
 .models-scroll th {
     position: sticky;
     top: 0;
-    background: #fdfdfe;
-    z-index: 5;
-    text-align: left;
+    background: var(--surface-2);
     padding: 0.75rem 1rem;
     font-size: 0.75rem;
+    font-weight: 750;
     text-transform: uppercase;
     color: var(--subtle);
     border-bottom: 1px solid var(--border);
+    z-index: 2;
 }
 
 .models-scroll td {
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-}
-
-.model-name {
-    font-weight: 800;
-}
-
-.model-sub {
-    font-size: 0.82rem;
-    color: var(--subtle);
-}
-
-/* Utilities */
-.dot-separator {
-    display: inline-block;
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: var(--border-strong);
-    margin: 0 0.4rem;
+    border-bottom: 1px solid var(--border);
     vertical-align: middle;
 }
 
-.btn-sm {
-    height: 32px;
-    padding: 0 0.7rem;
-    font-size: 0.82rem;
+.models-scroll th.text-right,
+.models-scroll td.text-right {
+    text-align: right;
 }
 
-.btn-on {
-    background: var(--accent-soft);
-    border-color: var(--accent-border);
+.models-scroll td.mono {
+    font-size: 0.875rem;
 }
 
-.pill {
-    display: inline-flex;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 0.75rem;
+.model-name {
     font-weight: 700;
-    border: 1px solid transparent;
+    font-size: 1rem;
+    margin-bottom: 0.125rem;
+}
+
+.model-sub {
+    font-size: 0.8125rem;
+    color: var(--subtle);
+}
+
+/* Pills & Badges */
+.pill {
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
 .pill-ok {
-    background: rgba(15, 118, 110, 0.08);
-    border-color: rgba(15, 118, 110, 0.18);
+    background: var(--success-soft);
     color: var(--success);
 }
 
 .pill-warn {
-    background: rgba(255, 255, 255, 0.55);
-    border-color: rgba(208, 215, 226, 0.9);
+    background: var(--surface-3);
     color: var(--subtle);
 }
 
-.hint {
-    font-size: 0.86rem;
-    color: var(--subtle);
+.dot-separator {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--border-strong);
 }
 
-.panel-empty {
-    padding: 2rem;
-    text-align: center;
-}
-
-.panel-empty-title {
-    font-weight: 850;
-    margin-bottom: 0.5rem;
-}
-
-.panel-empty-sub {
-    color: var(--muted);
+/* Utilities */
+.notice {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
 }
 
 @media (max-width: 960px) {
     .settings-split {
         grid-template-columns: 1fr;
+    }
+    
+    .panel {
+        height: auto;
+        max-height: 500px;
     }
 }

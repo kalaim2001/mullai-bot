@@ -1,0 +1,100 @@
+.composer-container {
+    padding: 1.5rem 2rem 2rem;
+    max-width: 840px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.composer-box {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 0.75rem 1rem;
+    box-shadow: var(--shadow-lg);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.composer-box:focus-within {
+    border-color: var(--accent-border);
+    box-shadow: var(--ring), var(--shadow-lg);
+}
+
+.composer-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0.5rem 0.25rem;
+    font-size: 1rem;
+    color: var(--text);
+    resize: none;
+    min-height: 24px;
+    max-height: 200px;
+    line-height: 1.5;
+}
+
+.action-btn, .send-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    flex-shrink: 0;
+}
+
+.action-btn {
+    color: var(--subtle);
+}
+
+.action-btn:hover {
+    background: var(--surface-3);
+    color: var(--text);
+}
+
+.send-btn {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+.send-btn:hover:not(.disabled) {
+    background: var(--accent-2);
+    transform: scale(1.05);
+}
+
+.send-btn.disabled {
+    background: var(--surface-3);
+    color: var(--subtle);
+    cursor: not-allowed;
+}
+
+.send-btn svg {
+    width: 18px;
+    height: 18px;
+    margin-right: -2px;
+}
+
+.action-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.composer-footer {
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--subtle);
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .composer-container {
+        padding: 1rem;
+    }
+}

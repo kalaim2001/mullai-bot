@@ -3,10 +3,7 @@
     display: flex;
     height: 100vh;
     overflow: hidden;
-    background:
-        radial-gradient(1100px 700px at 20% -10%, rgba(79, 70, 229, 0.10), transparent 60%),
-        radial-gradient(900px 500px at 110% 20%, rgba(15, 118, 110, 0.06), transparent 55%),
-        var(--bg);
+    background: var(--bg);
 }
 
 .app-sidebar {
@@ -30,9 +27,9 @@
 
 .app-content {
     flex: 1;
-    padding: 1.25rem;
-    overflow: scroll;
+    overflow: hidden; /* Home.razor handles its own scrolling */
     min-height: 0;
+    position: relative;
 }
 
 .app-overlay {

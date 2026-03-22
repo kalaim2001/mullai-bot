@@ -15,71 +15,61 @@
 
 <PageTitle>Mullai Chat</PageTitle>
 
-<div class="chat-container">
-    <div class="chat-messages">
+<div class="chat-page">
+    <div class="chat-scroll-container">
         @if (_timeline.Count == 0)
         {
-            <div class="empty-state">
-                <div class="empty-title">Welcome to Mullai Assistant</div>
-                <div class="empty-subtitle">How can I help you today?</div>
+            <div class="hero-container">
+                <h1 class="hero-title">How can I help you today?</h1>
+                <p class="hero-subtitle">Mullai is your intelligent assistant, ready to help with coding, research, and more.</p>
+                
+                <div class="suggested-prompts">
+                    <div class="prompt-card" @onclick="@(() => SetDraftAndSubmit("What is Mullai?"))">
+                        <div class="prompt-icon">✨</div>
+                        <div class="prompt-text">What is Mullai?</div>
+                        <div class="prompt-subtext">Learn about your new assistant</div>
+                    </div>
+                    <div class="prompt-card" @onclick="@(() => SetDraftAndSubmit("Help me with a coding task"))">
+                        <div class="prompt-icon">💻</div>
+                        <div class="prompt-text">Help me with coding</div>
+                        <div class="prompt-subtext">Debug, refactor, or explain code</div>
+                    </div>
+                    <div class="prompt-card" @onclick="@(() => SetDraftAndSubmit("Summarize a complex topic"))">
+                        <div class="prompt-icon">📚</div>
+                        <div class="prompt-text">Summarize a topic</div>
+                        <div class="prompt-subtext">Get quick insights on anything</div>
+                    </div>
+                </div>
             </div>
         }
         else
         {
-            @foreach (var entry in _timeline)
-            {
-                if (entry is ChatTimelineEntry message)
+            <div class="chat-history">
+                @foreach (var entry in _timeline)
                 {
-                    <div class="chat-bubble-row @(message.IsUser ? "user" : "assistant")" @key="message.Id">
-                        <div class="bubble-meta">@((message.IsUser) ? "You" : "Mullai")</div>
-                        <div class="chat-bubble @(message.IsError ? "error" : string.Empty)">
-                            <div class="message-content">@message.Content</div>
-                            @if (message.IsPending)
-                            {
-                                <div class="message-pending">...</div>
-                            }
-                        </div>
-                    </div>
+                    if (entry is ChatTimelineEntry message)
+                    {
+                        <ChatMessageItem @key="message.Id"
+                                         IsUser="message.IsUser"
+                                         Content="@message.Content"
+                                         IsPending="message.IsPending"
+                                         IsError="message.IsError" />
+                    }
+                    else if (entry is ThoughtTimelineEntry thought)
+                    {
+                        <ThoughtIndicator @key="thought.Id" />
+                    }
+                    else if (entry is ToolTimelineEntry tool)
+                    {
+                        <ToolCallItem @key="tool.Id" FeedItem="tool.FeedItem" />
+                    }
                 }
-                else if (entry is ThoughtTimelineEntry thought)
-                {
-                    <div class="thought-status" @key="thought.Id">
-                        <div class="status-indicator pending">
-                            Working on it...
-                        </div>
-                    </div>
-                }
-                else if (entry is ToolTimelineEntry tool)
-                {
-                    <div class="tool-observation" @key="tool.Id">
-                        <div class="tool-header">Tool Trace: @tool.FeedItem.Observation.ToolName</div>
-                        @if (!string.IsNullOrWhiteSpace(tool.FeedItem.Observation.Result))
-                        {
-                            <div class="tool-result">@Truncate(tool.FeedItem.Observation.Result!, 200)</div>
-                        }
-                        @if (!string.IsNullOrWhiteSpace(tool.FeedItem.Observation.Error))
-                        {
-                            <div class="tool-error">@tool.FeedItem.Observation.Error</div>
-                        }
-                    </div>
-                }
-            }
+            </div>
         }
     </div>
 
-    <div class="chat-input-area">
-        <form class="composer-form" @onsubmit="HandleSubmitAsync" @onsubmit:preventDefault="true">
-            <input class="composer-input"
-                   @bind="_draft"
-                   @bind:event="oninput"
-                   placeholder="Type a message..."
-                   autocomplete="off" />
-            <button class="composer-btn"
-                    type="submit"
-                    disabled="@string.IsNullOrWhiteSpace(_draft)">
-                Send
-            </button>
-        </form>
+    <div class="chat-composer-outer">
+        <ChatComposer @bind-Value="_draft" OnSubmit="HandleSubmitAsync" />
     </div>
 </div>
 
@@ -94,6 +84,12 @@
     private CancellationTokenSource? _pollingCts;
     private Task? _pollingTask;
     private Task? _responseChannelTask;
+
+    private async Task SetDraftAndSubmit(string text)
+    {
+        _draft = text;
+        await HandleSubmitAsync();
+    }
 
     protected override void OnInitialized()
     {

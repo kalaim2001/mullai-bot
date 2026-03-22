@@ -1,0 +1,91 @@
+.message-item {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message-container {
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.message-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.user .avatar {
+    background: var(--surface-3);
+    color: var(--muted);
+}
+
+.assistant .avatar {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.author-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+}
+
+.message-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-wrap;
+    padding-left: 2.75rem;
+}
+
+.user .message-content {
+    color: var(--text);
+}
+
+.error .message-content {
+    color: var(--danger);
+    background: var(--danger-soft);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    margin-left: 2.75rem;
+}
+
+.cursor-blink {
+    display: inline-block;
+    width: 8px;
+    height: 1.2em;
+    background: var(--accent);
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    from, to { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.avatar svg {
+    width: 18px;
+    height: 18px;
+}
