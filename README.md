@@ -103,6 +103,22 @@ This will stop and remove the Mullai Web service and delete the installation dir
 
 ---
 
+## Service Management
+
+After installation, the Mullai Web service runs automatically. You can manage it using the following commands:
+
+### macOS / Linux
+- **Start**: `sudo systemctl start mullai-web` (Linux) or `launchctl load ~/Library/LaunchAgents/com.mullai.bot.web.plist` (macOS)
+- **Stop**: `sudo systemctl stop mullai-web` (Linux) or `launchctl unload ~/Library/LaunchAgents/com.mullai.bot.web.plist` (macOS)
+- **Restart**: `sudo systemctl restart mullai-web` (Linux) or `launchctl unload ~/Library/LaunchAgents/com.mullai.bot.web.plist && launchctl load ~/Library/LaunchAgents/com.mullai.bot.web.plist` (macOS)
+
+### Windows (PowerShell)
+- **Start**: `Start-Service MullaiWeb`
+- **Stop**: `Stop-Service MullaiWeb`
+- **Restart**: `Restart-Service MullaiWeb`
+
+---
+
 ## Key Features
 
 Mullai is designed for resilience, flexibility, and developer-friendliness:
