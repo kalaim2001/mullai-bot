@@ -5,7 +5,11 @@ using Mullai.TaskRuntime.Abstractions;
 using Mullai.Abstractions.Configuration;
 using Mullai.Global.ServiceConfiguration;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory
+});
 builder.WebHost.UseUrls("http://0.0.0.0:7755");
 builder.Host.UseWindowsService();
 builder.Host.UseSystemd();
