@@ -1,8 +1,12 @@
+using System;
 using Mullai.TaskRuntime.Models;
 
 namespace Mullai.TaskRuntime.Abstractions;
 
 public interface IMullaiTaskExecutor
 {
-    Task<string> ExecuteAsync(MullaiTaskWorkItem workItem, CancellationToken cancellationToken = default);
+    Task<string> ExecuteAsync(
+        MullaiTaskWorkItem workItem,
+        Func<string, Task>? onResponseFragment = null,
+        CancellationToken cancellationToken = default);
 }

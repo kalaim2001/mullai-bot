@@ -1,6 +1,7 @@
 @page "/"
 @rendermode InteractiveServer
 @using Microsoft.Extensions.Options
+@using System.Threading.Channels
 @using Mullai.TaskRuntime.Abstractions
 @using Mullai.TaskRuntime.Models
 @using Mullai.TaskRuntime.Options
@@ -9,6 +10,7 @@
 @inject IMullaiTaskQueue TaskQueue
 @inject IMullaiTaskStatusStore StatusStore
 @inject IMullaiToolCallFeed ToolCallFeed
+@inject IMullaiTaskResponseChannel ResponseChannel
 @inject IOptions<MullaiTaskRuntimeOptions> RuntimeOptions
 
 <PageTitle>Mullai Chat</PageTitle>
@@ -83,7 +85,7 @@
 
 @code {
     private readonly List<TimelineEntry> _timeline = [];
-    private readonly Dictionary<string, ThoughtTimelineEntry> _pendingAssistantMessages = new();
+    private readonly Dictionary<string, PendingAssistantMessage> _pendingAssistantMessages = new();
     private readonly string _sessionKey = $"web-{Guid.NewGuid():N}";
     private string _sessionDisplay = string.Empty;
 
@@ -91,12 +93,14 @@
     private long _lastToolCallSequence;
     private CancellationTokenSource? _pollingCts;
     private Task? _pollingTask;
+    private Task? _responseChannelTask;
 
     protected override void OnInitialized()
     {
         _sessionDisplay = _sessionKey.Length > 14 ? _sessionKey[..14] : _sessionKey;
         _pollingCts = new CancellationTokenSource();
         _pollingTask = PollRuntimeAsync(_pollingCts.Token);
+        _responseChannelTask = RunResponseFeedAsync(_pollingCts.Token);
     }
 
     private async Task HandleSubmitAsync()
@@ -116,8 +120,8 @@
         };
         _timeline.Add(userMessage);
 
-        var pendingMessage = new ThoughtTimelineEntry();
-        _timeline.Add(pendingMessage);
+        var pendingThought = new ThoughtTimelineEntry();
+        _timeline.Add(pendingThought);
 
         var maxAttempts = Math.Max(1, RuntimeOptions.Value.DefaultMaxAttempts);
         var workItem = new MullaiTaskWorkItem
@@ -130,7 +134,10 @@
             MaxAttempts = maxAttempts
         };
 
-        _pendingAssistantMessages[workItem.TaskId] = pendingMessage;
+        _pendingAssistantMessages[workItem.TaskId] = new PendingAssistantMessage
+        {
+            ThoughtEntry = pendingThought
+        };
 
         try
         {
@@ -139,7 +146,14 @@
         }
         catch (Exception ex)
         {
-            _timeline.Remove(pendingMessage);
+            if (_pendingAssistantMessages.TryGetValue(workItem.TaskId, out var pending))
+            {
+                if (pending.ResponseEntry is not null)
+                {
+                    _timeline.Remove(pending.ResponseEntry);
+                }
+            }
+            _timeline.Remove(pendingThought);
             var errorMessage = new ChatTimelineEntry
             {
                 IsUser = false,
@@ -153,9 +167,9 @@
 
     private async Task PollRuntimeAsync(CancellationToken cancellationToken)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(350));
+        var pollInterval = TimeSpan.FromMilliseconds(200);
 
-        while (await timer.WaitForNextTickAsync(cancellationToken))
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
@@ -177,6 +191,36 @@
             {
                 // Swallow polling errors to keep the chat UI responsive.
             }
+
+            try
+            {
+                await Task.Delay(pollInterval, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+        }
+    }
+
+    private async Task RunResponseFeedAsync(CancellationToken cancellationToken)
+    {
+        await foreach (var update in ResponseChannel.Reader.ReadAllAsync(cancellationToken))
+        {
+            if (!string.Equals(update.SessionKey, _sessionKey, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (!_pendingAssistantMessages.TryGetValue(update.TaskId, out var pending))
+            {
+                continue;
+            }
+
+            if (UpdatePendingResponse(pending, update.Response, isFinal: false, isError: false))
+            {
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
 
@@ -196,33 +240,32 @@
                 continue;
             }
 
-            if (status.State == MullaiTaskState.Succeeded)
+            var pending = pair.Value;
+            if (status.State == MullaiTaskState.Running || status.State == MullaiTaskState.Queued || status.State == MullaiTaskState.RetryScheduled)
             {
-                _timeline.Remove(pair.Value);
-                var responseMessage = new ChatTimelineEntry
+                var responseText = status.Response ?? string.Empty;
+                if (responseText.Length > 0)
                 {
-                    IsUser = false,
-                    Content = string.IsNullOrWhiteSpace(status.Response)
-                        ? "(No response)"
-                        : status.Response!
-                };
-                _timeline.Add(responseMessage);
-                _pendingAssistantMessages.Remove(pair.Key);
-                changed = true;
+                    changed |= UpdatePendingResponse(pending, responseText, isFinal: false, isError: false);
+                }
+
+                continue;
             }
-            else if (status.State == MullaiTaskState.Failed)
-            {
-                _timeline.Remove(pair.Value);
-                var errorMessage = new ChatTimelineEntry
-                {
-                    IsUser = false,
-                    Content = $"Task failed: {status.Error}",
-                    IsError = true
-                };
-                _timeline.Add(errorMessage);
-                _pendingAssistantMessages.Remove(pair.Key);
-                changed = true;
-            }
+
+            var finalContent = status.State == MullaiTaskState.Succeeded
+                ? string.IsNullOrWhiteSpace(status.Response)
+                    ? "(No response)"
+                    : status.Response!
+                : $"Task failed: {status.Error ?? "Unknown error"}";
+
+            changed |= UpdatePendingResponse(
+                pending,
+                finalContent,
+                isFinal: true,
+                isError: status.State != MullaiTaskState.Succeeded);
+
+            _timeline.Remove(pending.ThoughtEntry);
+            _pendingAssistantMessages.Remove(pair.Key);
         }
 
         return changed;
@@ -247,16 +290,89 @@
             }
 
             var entry = new ToolTimelineEntry { FeedItem = item };
-            var pendingIndex = _timeline.FindLastIndex(x => x is ThoughtTimelineEntry t && t.IsPending);
-            if (pendingIndex >= 0)
+            ThoughtTimelineEntry? anchor = null;
+
+            if (item.TaskId is not null && _pendingAssistantMessages.TryGetValue(item.TaskId, out var pending))
             {
-                _timeline.Insert(pendingIndex, entry);
+                anchor = pending.ThoughtEntry;
+            }
+            else
+            {
+                // Fallback to active thought entry if taskId not matched
+                anchor = _timeline.OfType<ThoughtTimelineEntry>().LastOrDefault(x => x.IsPending);
+            }
+
+            if (anchor is not null)
+            {
+                var anchorIndex = _timeline.IndexOf(anchor);
+                if (anchorIndex >= 0)
+                {
+                    _timeline.Insert(anchorIndex, entry);
+                }
+                else
+                {
+                    _timeline.Add(entry);
+                }
             }
             else
             {
                 _timeline.Add(entry);
             }
 
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private bool UpdatePendingResponse(PendingAssistantMessage pending, string content, bool isFinal, bool isError)
+    {
+        if (pending.ThoughtEntry is null)
+        {
+            return false;
+        }
+
+        var changed = false;
+        var entry = pending.ResponseEntry;
+        if (entry is null)
+        {
+            var newEntry = new ChatTimelineEntry
+            {
+                IsUser = false,
+                Content = content,
+                IsPending = !isFinal,
+                IsError = isError
+            };
+
+            var thoughtIndex = _timeline.IndexOf(pending.ThoughtEntry);
+            if (thoughtIndex >= 0)
+            {
+                _timeline.Insert(thoughtIndex, newEntry);
+            }
+            else
+            {
+                _timeline.Add(newEntry);
+            }
+
+            pending.ResponseEntry = newEntry;
+            return true;
+        }
+
+        if (!string.Equals(entry.Content, content, StringComparison.Ordinal))
+        {
+            entry.Content = content;
+            changed = true;
+        }
+
+        if (entry.IsError != isError)
+        {
+            entry.IsError = isError;
+            changed = true;
+        }
+
+        if (entry.IsPending == isFinal)
+        {
+            entry.IsPending = !isFinal;
             changed = true;
         }
 
@@ -294,6 +410,18 @@
             }
         }
 
+        if (_responseChannelTask is not null)
+        {
+            try
+            {
+                await _responseChannelTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected during shutdown.
+            }
+        }
+
         _pollingCts.Dispose();
     }
 
@@ -318,5 +446,11 @@
     private sealed class ThoughtTimelineEntry : TimelineEntry
     {
         public bool IsPending { get; set; } = true;
+    }
+
+    private sealed class PendingAssistantMessage
+    {
+        public ChatTimelineEntry? ResponseEntry { get; set; }
+        public required ThoughtTimelineEntry ThoughtEntry { get; init; }
     }
 }

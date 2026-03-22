@@ -11,6 +11,7 @@ public class MullaiTaskWorkerService : BackgroundService
     private readonly IMullaiTaskQueue _queue;
     private readonly IMullaiTaskStatusStore _statusStore;
     private readonly IMullaiTaskExecutor _executor;
+    private readonly IMullaiTaskResponseChannel _responseChannel;
     private readonly MullaiTaskRuntimeOptions _runtimeOptions;
     private readonly ILogger<MullaiTaskWorkerService> _logger;
 
@@ -18,12 +19,14 @@ public class MullaiTaskWorkerService : BackgroundService
         IMullaiTaskQueue queue,
         IMullaiTaskStatusStore statusStore,
         IMullaiTaskExecutor executor,
+        IMullaiTaskResponseChannel responseChannel,
         IOptions<MullaiTaskRuntimeOptions> runtimeOptions,
         ILogger<MullaiTaskWorkerService> logger)
     {
         _queue = queue ?? throw new ArgumentNullException(nameof(queue));
         _statusStore = statusStore ?? throw new ArgumentNullException(nameof(statusStore));
         _executor = executor ?? throw new ArgumentNullException(nameof(executor));
+        _responseChannel = responseChannel ?? throw new ArgumentNullException(nameof(responseChannel));
         _runtimeOptions = runtimeOptions?.Value ?? throw new ArgumentNullException(nameof(runtimeOptions));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -70,9 +73,22 @@ public class MullaiTaskWorkerService : BackgroundService
                 workItem.Attempt + 1,
                 workItem.MaxAttempts);
 
-            await _statusStore.MarkRunningAsync(workItem, cancellationToken).ConfigureAwait(false);
+            await _statusStore.MarkRunningAsync(workItem, cancellationToken: cancellationToken).ConfigureAwait(false);
             using var scope = MullaiTaskExecutionContext.BeginScope(workItem.TaskId, workItem.SessionKey);
-            var response = await _executor.ExecuteAsync(workItem, cancellationToken).ConfigureAwait(false);
+            var response = await _executor.ExecuteAsync(
+                workItem,
+                async responseSoFar =>
+                {
+                    await _statusStore.MarkRunningAsync(workItem, responseSoFar, cancellationToken).ConfigureAwait(false);
+                    var feedItem = new TaskResponseFeedItem
+                    {
+                        TaskId = workItem.TaskId,
+                        SessionKey = workItem.SessionKey,
+                        Response = responseSoFar
+                    };
+                    await _responseChannel.Writer.WriteAsync(feedItem, cancellationToken).ConfigureAwait(false);
+                },
+                cancellationToken).ConfigureAwait(false);
             await _statusStore.MarkSucceededAsync(workItem, response, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

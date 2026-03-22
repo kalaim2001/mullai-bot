@@ -55,10 +55,11 @@ Current code:
 
 - `MullaiTaskWorkerService` runs a configurable worker pool.
 - Worker loop responsibilities:
-- dequeue one task
-- mark status `Running`
-- execute task via `IMullaiTaskExecutor`
-- mark `Succeeded` or retry/fail
+  - dequeue one task
+  - mark status `Running`
+  - execute task via `IMullaiTaskExecutor`
+  - mark `Succeeded` or retry/fail
+  - During execution the worker streams from `IMullaiTaskExecutor`, which now surfaces each partial response string via a callback so the runtime can update observers while the agent is still running.
 
 Current code:
 
@@ -89,6 +90,7 @@ Task lifecycle states:
 - `RetryScheduled`
 - `Succeeded`
 - `Failed`
+- `MarkRunningAsync` now accepts an optional response string so the status snapshot can carry partial assistant text before the task succeeds.
 
 Current code:
 

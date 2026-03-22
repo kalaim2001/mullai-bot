@@ -18,6 +18,7 @@ public static class MullaiTaskRuntimeServiceCollectionExtensions
         services.AddSingleton<IMullaiTaskQueue, InMemoryMullaiTaskQueue>();
         services.AddSingleton<IMullaiTaskStatusStore, InMemoryMullaiTaskStatusStore>();
         services.AddSingleton<IMullaiToolCallFeed, InMemoryMullaiToolCallFeed>();
+        services.AddSingleton<IMullaiTaskResponseChannel, MullaiTaskResponseChannel>();
         services.AddSingleton<IMullaiTaskClientFactory, WebMullaiClientFactory>();
         services.AddSingleton<IMullaiTaskExecutor, MullaiTaskExecutor>();
 

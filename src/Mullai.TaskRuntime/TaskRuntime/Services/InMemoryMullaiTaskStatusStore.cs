@@ -14,9 +14,9 @@ public class InMemoryMullaiTaskStatusStore : IMullaiTaskStatusStore
         return Task.CompletedTask;
     }
 
-    public Task MarkRunningAsync(MullaiTaskWorkItem workItem, CancellationToken cancellationToken = default)
+    public Task MarkRunningAsync(MullaiTaskWorkItem workItem, string? response = null, CancellationToken cancellationToken = default)
     {
-        Upsert(workItem, MullaiTaskState.Running);
+        Upsert(workItem, MullaiTaskState.Running, response: response);
         return Task.CompletedTask;
     }
 
