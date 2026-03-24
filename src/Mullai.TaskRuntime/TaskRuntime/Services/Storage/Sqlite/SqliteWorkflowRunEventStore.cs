@@ -2,7 +2,7 @@ using Microsoft.Data.Sqlite;
 using Mullai.TaskRuntime.Abstractions;
 using Mullai.TaskRuntime.Models;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Storage.Sqlite;
 
 public sealed class SqliteWorkflowRunEventStore : IWorkflowRunEventStore
 {

@@ -4,7 +4,7 @@ using Mullai.TaskRuntime.Abstractions;
 using Mullai.TaskRuntime.Execution;
 using Mullai.TaskRuntime.Models;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Storage.InMemory;
 
 public class InMemoryMullaiToolCallFeed : IMullaiToolCallFeed
 {

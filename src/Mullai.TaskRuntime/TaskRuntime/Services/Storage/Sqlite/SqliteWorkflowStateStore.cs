@@ -1,7 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Mullai.Abstractions.WorkflowState;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Storage.Sqlite;
 
 public sealed class SqliteWorkflowStateStore : IWorkflowStateStore
 {

@@ -1,6 +1,6 @@
 using Mullai.Workflows.Abstractions;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Background;
 
 public sealed class WorkflowRegistryWatcherService : BackgroundService
 {

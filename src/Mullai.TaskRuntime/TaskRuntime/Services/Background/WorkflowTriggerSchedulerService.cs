@@ -7,7 +7,7 @@ using Mullai.Workflows.Abstractions;
 using Mullai.Workflows.Models;
 using Mullai.Abstractions.WorkflowState;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Background;
 
 public sealed class WorkflowTriggerSchedulerService : BackgroundService
 {

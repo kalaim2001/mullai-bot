@@ -2,7 +2,7 @@ using System.Threading.Channels;
 using Mullai.TaskRuntime.Abstractions;
 using Mullai.TaskRuntime.Models;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Messaging;
 
 public class MullaiTaskResponseChannel : IMullaiTaskResponseChannel
 {

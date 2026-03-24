@@ -4,7 +4,7 @@ using Mullai.TaskRuntime.Abstractions;
 using Mullai.TaskRuntime.Models;
 using Mullai.TaskRuntime.Options;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Storage.Sqlite;
 
 public sealed class SqliteMullaiTaskStatusStore : IMullaiTaskStatusStore
 {

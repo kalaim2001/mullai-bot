@@ -6,7 +6,7 @@ using Mullai.TaskRuntime.Options;
 using Mullai.Workflows.Abstractions;
 using Mullai.Workflows.Models;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Background;
 
 public class MullaiTaskWorkerService : BackgroundService
 {

@@ -51,11 +51,6 @@ public class AgentFactory
 
         switch (agentName)
         {
-            case "Joker":
-                var joker = new Joker();
-                agent = chatClient.AsAIAgent(joker.Instructions, joker.Name);
-                break;
-            
             case "Assistant":
                 var assistant = new Assistant();
                 agent = chatClient.AsAIAgent(

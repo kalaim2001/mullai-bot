@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Storage.Sqlite;
 
 public static class SqliteStoreHelper
 {

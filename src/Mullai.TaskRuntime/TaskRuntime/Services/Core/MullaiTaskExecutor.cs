@@ -2,7 +2,7 @@ using System.Text;
 using Mullai.TaskRuntime.Abstractions;
 using Mullai.TaskRuntime.Models;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Core;
 
 public class MullaiTaskExecutor : IMullaiTaskExecutor
 {

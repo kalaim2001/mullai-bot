@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using Mullai.TaskRuntime.Abstractions;
 using Mullai.TaskRuntime.Models;
 
-namespace Mullai.TaskRuntime.Services;
+namespace Mullai.TaskRuntime.Services.Storage.InMemory;
 
 public sealed class InMemoryWorkflowOutputFailureStore : IWorkflowOutputFailureStore
 {
