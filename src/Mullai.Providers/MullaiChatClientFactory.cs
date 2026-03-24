@@ -12,6 +12,7 @@ using System.Text.Json;
 using Mullai.Providers.LLMProviders.Gemini;
 using Mullai.Providers.LLMProviders.Nvidia;
 using Mullai.Providers.LLMProviders.Groq;
+using Mullai.Providers.LLMProviders.Cerebras;
 using OpenAI;
 
 namespace Mullai.Providers;
@@ -27,7 +28,8 @@ public static class MullaiChatClientFactory
         new MistralModelAdapter(),
         new NvidiaModelAdapter(),
         new GeminiModelAdapter(),
-        new GroqModelAdapter()
+        new GroqModelAdapter(),
+        new CerebrasModelAdapter()
     };
     
     public static MullaiChatClient Create(
@@ -113,6 +115,7 @@ public static class MullaiChatClientFactory
                 "Gemini"  => Gemini.GetGeminiChatClient(effectiveConfig, httpClient, modelId),
                 "Nvidia"  => Nvidia.GetNvidiaChatClient(effectiveConfig, httpClient, modelId),
                 "Groq"  => Groq.GetGroqChatClient(effectiveConfig, httpClient, modelId),
+                "Cerebras"  => Cerebras.GetCerebrasChatClient(effectiveConfig, httpClient, modelId),
                 _ => null
             };
         }
